@@ -68,7 +68,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'HCMU SOS',
+      title: 'VNUHCM Smart Campus',
       translations: AppTranslations(),
       locale: LocaleManager.initialLocale,
       fallbackLocale: LocaleManager.fallbackLocale,
