@@ -31,110 +31,118 @@ class CreateTicketView extends GetWidget<CreateTicketViewModel> {
       ),
       child: Scaffold(
         backgroundColor: _pageColor,
-        body: SafeArea(
-          bottom: false,
-          child: ClipRect(
-            child: NotificationListener<OverscrollIndicatorNotification>(
-              onNotification: (notification) {
-                notification.disallowIndicator();
-                return true;
-              },
-              child: CustomScrollView(
-                physics: const ClampingScrollPhysics(),
-                slivers: [
-                  const SliverToBoxAdapter(child: _Header()),
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(18, 14, 18, 24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _OfflineNote(),
-                          const SizedBox(height: 16),
-                          _FieldLabel('ticket.field.title'.tr, required: true),
-                          const SizedBox(height: 8),
-                          _TicketTextField(
-                            controller: controller.titleController,
-                            hintText: 'ticket.hint.title'.tr,
-                            textInputAction: TextInputAction.next,
-                          ),
-                          const SizedBox(height: 18),
-                          _FieldLabel(
-                            'ticket.field.incidentType'.tr,
-                            required: true,
-                          ),
-                          const SizedBox(height: 10),
-                          _IncidentTypeGrid(controller: controller),
-                          const SizedBox(height: 18),
-                          _PrioritySection(controller: controller),
-                          const SizedBox(height: 18),
-                          _FieldLabel(
-                            'ticket.field.description'.tr,
-                            required: true,
-                          ),
-                          const SizedBox(height: 8),
-                          _TicketTextField(
-                            controller: controller.descriptionController,
-                            hintText: 'ticket.hint.description'.tr,
-                            maxLines: 5,
-                            maxLength: 500,
-                            textInputAction: TextInputAction.newline,
-                          ),
-                          const SizedBox(height: 18),
-                          _PhotoSection(controller: controller),
-                          const SizedBox(height: 18),
-                          _FieldLabel(
-                            'ticket.field.location'.tr,
-                            required: true,
-                          ),
-                          const SizedBox(height: 8),
-                          Obx(
-                            () => _TicketTextField(
-                              controller: controller.locationController,
-                              hintText: 'ticket.hint.location'.tr,
-                              prefixIcon: Icons.place_outlined,
-                              suffixIcon:
-                                  controller.isResolvingLocationText.value
-                                  ? const Padding(
-                                      padding: EdgeInsets.all(14),
-                                      child: SizedBox(
-                                        width: 18,
-                                        height: 18,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: CreateTicketView._primaryColor,
+        body: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+          child: SafeArea(
+            bottom: false,
+            child: ClipRect(
+              child: NotificationListener<OverscrollIndicatorNotification>(
+                onNotification: (notification) {
+                  notification.disallowIndicator();
+                  return true;
+                },
+                child: CustomScrollView(
+                  physics: const ClampingScrollPhysics(),
+                  slivers: [
+                    const SliverToBoxAdapter(child: _Header()),
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(18, 14, 18, 24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _OfflineNote(),
+                            const SizedBox(height: 16),
+                            _FieldLabel(
+                              'ticket.field.title'.tr,
+                              required: true,
+                            ),
+                            const SizedBox(height: 8),
+                            _TicketTextField(
+                              controller: controller.titleController,
+                              hintText: 'ticket.hint.title'.tr,
+                              textInputAction: TextInputAction.next,
+                            ),
+                            const SizedBox(height: 18),
+                            _FieldLabel(
+                              'ticket.field.incidentType'.tr,
+                              required: true,
+                            ),
+                            const SizedBox(height: 10),
+                            _IncidentTypeGrid(controller: controller),
+                            const SizedBox(height: 18),
+                            _PrioritySection(controller: controller),
+                            const SizedBox(height: 18),
+                            _FieldLabel(
+                              'ticket.field.description'.tr,
+                              required: true,
+                            ),
+                            const SizedBox(height: 8),
+                            _TicketTextField(
+                              controller: controller.descriptionController,
+                              hintText: 'ticket.hint.description'.tr,
+                              maxLines: 5,
+                              maxLength: 500,
+                              textInputAction: TextInputAction.newline,
+                            ),
+                            const SizedBox(height: 18),
+                            _PhotoSection(controller: controller),
+                            const SizedBox(height: 18),
+                            _FieldLabel(
+                              'ticket.field.location'.tr,
+                              required: true,
+                            ),
+                            const SizedBox(height: 8),
+                            Obx(
+                              () => _TicketTextField(
+                                controller: controller.locationController,
+                                hintText: 'ticket.hint.location'.tr,
+                                prefixIcon: Icons.place_outlined,
+                                suffixIcon:
+                                    controller.isResolvingLocationText.value
+                                    ? const Padding(
+                                        padding: EdgeInsets.all(14),
+                                        child: SizedBox(
+                                          width: 18,
+                                          height: 18,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color:
+                                                CreateTicketView._primaryColor,
+                                          ),
                                         ),
-                                      ),
-                                    )
-                                  : null,
-                              textInputAction: TextInputAction.done,
+                                      )
+                                    : null,
+                                textInputAction: TextInputAction.done,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 10),
-                          _LocationMap(controller: controller),
-                          const SizedBox(height: 24),
-                          Container(
-                            padding: const EdgeInsets.only(top: 12),
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Color(0x0A000000),
-                                  blurRadius: 16,
-                                  offset: Offset(0, -4),
-                                ),
-                              ],
+                            const SizedBox(height: 10),
+                            _LocationMap(controller: controller),
+                            const SizedBox(height: 24),
+                            Container(
+                              padding: const EdgeInsets.only(top: 12),
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Color(0x0A000000),
+                                    blurRadius: 16,
+                                    offset: Offset(0, -4),
+                                  ),
+                                ],
+                              ),
+                              child: _ActionRow(
+                                controller: controller,
+                                onCreated: onCreated,
+                              ),
                             ),
-                            child: _ActionRow(
-                              controller: controller,
-                              onCreated: onCreated,
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
