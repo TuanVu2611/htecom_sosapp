@@ -8,6 +8,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:hcmu_sos/Entity/IncidentTypeEntity.dart';
 import 'package:hcmu_sos/Repository/CatalogRepository.dart';
+import 'package:hcmu_sos/Repository/LocationLookupRepository.dart';
 import 'package:hcmu_sos/Repository/PendingTicketRepository.dart';
 import 'package:hcmu_sos/Repository/SupportRequestRepository.dart';
 import 'package:hcmu_sos/Service/ApiCaller.dart';
@@ -37,10 +38,13 @@ class TicketImageAttachment {
 class CreateTicketViewModel extends GetxController {
   CreateTicketViewModel({
     CatalogRepository? catalogRepository,
+    LocationLookupRepository? locationLookupRepository,
     SupportRequestRepository? requestRepository,
     PendingTicketRepository? pendingTicketRepository,
     PendingTicketSyncService? pendingTicketSyncService,
   }) : _catalogRepository = catalogRepository ?? CatalogRepository(),
+       _locationLookupRepository =
+           locationLookupRepository ?? LocationLookupRepository(),
        _requestRepository = requestRepository ?? SupportRequestRepository(),
        _pendingTicketRepository =
            pendingTicketRepository ?? PendingTicketRepository(),
@@ -48,6 +52,7 @@ class CreateTicketViewModel extends GetxController {
            pendingTicketSyncService ?? PendingTicketSyncService.instance;
 
   final CatalogRepository _catalogRepository;
+  final LocationLookupRepository _locationLookupRepository;
   final SupportRequestRepository _requestRepository;
   final PendingTicketRepository _pendingTicketRepository;
   final PendingTicketSyncService _pendingTicketSyncService;
@@ -65,11 +70,19 @@ class CreateTicketViewModel extends GetxController {
   final longitude = 106.660172.obs;
   final isLoadingCatalog = false.obs;
   final isLocating = false.obs;
+  final isResolvingLocationText = false.obs;
   final isSubmitting = false.obs;
+
+  Timer? _locationLookupDebounce;
+  bool _isApplyingAutoLocationText = false;
+  bool _hasManualLocationOverride = false;
+  String? _lastAutoResolvedLocationText;
+  int _locationLookupRequestId = 0;
 
   @override
   void onInit() {
     super.onInit();
+    locationController.addListener(_handleLocationTextChanged);
     loadIncidentTypes();
     loadCurrentLocation();
   }
@@ -129,7 +142,11 @@ class CreateTicketViewModel extends GetxController {
           accuracy: LocationAccuracy.high,
         ),
       );
-      updateLocation(position.latitude, position.longitude);
+      updateLocation(
+        position.latitude,
+        position.longitude,
+        forceRefreshAddress: true,
+      );
     } finally {
       isLocating.value = false;
     }
@@ -143,9 +160,14 @@ class CreateTicketViewModel extends GetxController {
     selectedPriority.value = priority;
   }
 
-  void updateLocation(double nextLatitude, double nextLongitude) {
+  void updateLocation(
+    double nextLatitude,
+    double nextLongitude, {
+    bool forceRefreshAddress = false,
+  }) {
     latitude.value = nextLatitude.clamp(-85.0, 85.0).toDouble();
     longitude.value = nextLongitude.clamp(-180.0, 180.0).toDouble();
+    _scheduleLocationLookup(forceOverride: forceRefreshAddress);
   }
 
   Future<void> pickImages() async {
@@ -333,12 +355,15 @@ class CreateTicketViewModel extends GetxController {
   void resetForm() {
     titleController.clear();
     descriptionController.clear();
-    locationController.clear();
+    _setLocationTextSilently('');
+    _hasManualLocationOverride = false;
+    _lastAutoResolvedLocationText = null;
     selectedPriority.value = TicketPriority.normal;
     selectedIncidentType.value = incidentTypes.isEmpty
         ? null
         : incidentTypes.first;
     attachments.clear();
+    _scheduleLocationLookup(forceOverride: true);
   }
 
   String priorityValue(TicketPriority priority) {
@@ -379,8 +404,77 @@ class CreateTicketViewModel extends GetxController {
     return null;
   }
 
+  void _handleLocationTextChanged() {
+    if (_isApplyingAutoLocationText) {
+      return;
+    }
+
+    final text = locationController.text.trim();
+    if (text.isEmpty) {
+      _hasManualLocationOverride = false;
+      _scheduleLocationLookup(forceOverride: true);
+      return;
+    }
+
+    _hasManualLocationOverride = text != (_lastAutoResolvedLocationText ?? '');
+  }
+
+  void _scheduleLocationLookup({bool forceOverride = false}) {
+    _locationLookupDebounce?.cancel();
+    _locationLookupDebounce = Timer(
+      const Duration(milliseconds: 450),
+      () => _resolveLocationText(forceOverride: forceOverride),
+    );
+  }
+
+  Future<void> _resolveLocationText({bool forceOverride = false}) async {
+    if (_hasManualLocationOverride && !forceOverride) {
+      return;
+    }
+
+    final requestId = ++_locationLookupRequestId;
+    isResolvingLocationText.value = true;
+
+    try {
+      final resolvedText = await _locationLookupRepository.reverseGeocode(
+        latitude: latitude.value,
+        longitude: longitude.value,
+      );
+
+      if (requestId != _locationLookupRequestId) {
+        return;
+      }
+
+      final nextText = resolvedText?.trim();
+      if (nextText == null || nextText.isEmpty) {
+        return;
+      }
+
+      _lastAutoResolvedLocationText = nextText;
+      if (!_hasManualLocationOverride || forceOverride) {
+        _setLocationTextSilently(nextText);
+        _hasManualLocationOverride = false;
+      }
+    } finally {
+      if (requestId == _locationLookupRequestId) {
+        isResolvingLocationText.value = false;
+      }
+    }
+  }
+
+  void _setLocationTextSilently(String value) {
+    _isApplyingAutoLocationText = true;
+    locationController.value = locationController.value.copyWith(
+      text: value,
+      selection: TextSelection.collapsed(offset: value.length),
+      composing: TextRange.empty,
+    );
+    _isApplyingAutoLocationText = false;
+  }
+
   @override
   void onClose() {
+    _locationLookupDebounce?.cancel();
     titleController.dispose();
     descriptionController.dispose();
     locationController.dispose();

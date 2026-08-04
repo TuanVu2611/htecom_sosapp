@@ -88,11 +88,27 @@ class CreateTicketView extends GetWidget<CreateTicketViewModel> {
                             required: true,
                           ),
                           const SizedBox(height: 8),
-                          _TicketTextField(
-                            controller: controller.locationController,
-                            hintText: 'ticket.hint.location'.tr,
-                            prefixIcon: Icons.place_outlined,
-                            textInputAction: TextInputAction.done,
+                          Obx(
+                            () => _TicketTextField(
+                              controller: controller.locationController,
+                              hintText: 'ticket.hint.location'.tr,
+                              prefixIcon: Icons.place_outlined,
+                              suffixIcon:
+                                  controller.isResolvingLocationText.value
+                                  ? const Padding(
+                                      padding: EdgeInsets.all(14),
+                                      child: SizedBox(
+                                        width: 18,
+                                        height: 18,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: CreateTicketView._primaryColor,
+                                        ),
+                                      ),
+                                    )
+                                  : null,
+                              textInputAction: TextInputAction.done,
+                            ),
                           ),
                           const SizedBox(height: 10),
                           _LocationMap(controller: controller),
@@ -278,6 +294,7 @@ class _TicketTextField extends StatelessWidget {
     this.maxLines = 1,
     this.maxLength,
     this.prefixIcon,
+    this.suffixIcon,
     this.textInputAction,
   });
 
@@ -286,6 +303,7 @@ class _TicketTextField extends StatelessWidget {
   final int maxLines;
   final int? maxLength;
   final IconData? prefixIcon;
+  final Widget? suffixIcon;
   final TextInputAction? textInputAction;
 
   @override
@@ -310,6 +328,7 @@ class _TicketTextField extends StatelessWidget {
         prefixIcon: prefixIcon == null
             ? null
             : Icon(prefixIcon, color: CreateTicketView._primaryColor, size: 20),
+        suffixIcon: suffixIcon,
         filled: true,
         fillColor: CreateTicketView._surfaceColor,
         contentPadding: const EdgeInsets.symmetric(
