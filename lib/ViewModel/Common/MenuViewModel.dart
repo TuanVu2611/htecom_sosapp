@@ -11,6 +11,7 @@ import 'package:hcmu_sos/Repository/StaffPerformanceRepository.dart';
 import 'package:hcmu_sos/Service/ApiCaller.dart';
 import 'package:hcmu_sos/Service/AuthSessionStorage.dart';
 import 'package:hcmu_sos/Service/StaffLocationUpdateService.dart';
+import 'package:hcmu_sos/Service/StudentSosTrackingService.dart';
 import 'package:hcmu_sos/Utils/Utils.dart';
 
 class MenuViewModel extends GetxController {
@@ -281,6 +282,7 @@ class MenuViewModel extends GetxController {
 
   Future<void> _clearLocalSessionAndNavigate() async {
     StaffLocationUpdateService.instance.stop();
+    StudentSosTrackingService.instance.stop();
     await AuthSessionStorage.clearSession();
     Get.offAllNamed(AppRoute.login);
   }

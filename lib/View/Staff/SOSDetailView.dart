@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hcmu_sos/Component/InteractiveTileMap.dart';
+import 'package:hcmu_sos/Navigator/AppRoute.dart';
 import 'package:hcmu_sos/Entity/StaffHomeEntity.dart';
 import 'package:hcmu_sos/Entity/SupportRequestEntity.dart';
 import 'package:hcmu_sos/Theme/AppTypography.dart';
@@ -108,40 +109,59 @@ class _MapSection extends StatelessWidget {
     final longitude = item.longitude;
     final hasCoordinates = latitude != null && longitude != null;
 
-    return Container(
-      height: 236,
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: SOSViewDetail._borderColor),
-      ),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          if (hasCoordinates)
-            InteractiveTileMap(
-              latitude: latitude,
-              longitude: longitude,
-              height: 236,
-              primaryColor: SOSViewDetail._primaryColor,
-              dangerColor: SOSViewDetail._dangerColor,
-              borderColor: SOSViewDetail._borderColor,
-              onDirections: () => _openDirections(latitude, longitude),
-            )
-          else
-            Container(
-              color: const Color(0xFFEFF2F6),
-              alignment: Alignment.center,
-              child: Text(
-                'Chưa có tọa độ SOS',
-                style: AppTextStyles.bodyStrong.copyWith(
-                  color: SOSViewDetail._mutedColor,
+    return Column(
+      children: [
+        Container(
+          height: 236,
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: SOSViewDetail._borderColor),
+          ),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              if (hasCoordinates)
+                InteractiveTileMap(
+                  latitude: latitude,
+                  longitude: longitude,
+                  height: 236,
+                  primaryColor: SOSViewDetail._primaryColor,
+                  dangerColor: SOSViewDetail._dangerColor,
+                  borderColor: SOSViewDetail._borderColor,
+                  onDirections: () => _openDirections(latitude, longitude),
+                )
+              else
+                Container(
+                  color: const Color(0xFFEFF2F6),
+                  alignment: Alignment.center,
+                  child: Text(
+                    'Chưa có tọa độ SOS',
+                    style: AppTextStyles.bodyStrong.copyWith(
+                      color: SOSViewDetail._mutedColor,
+                    ),
+                  ),
                 ),
+            ],
+          ),
+        ),
+        if (hasCoordinates) ...[
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => Get.toNamed(
+                AppRoute.staffSosRealtimeMap,
+                arguments: item,
               ),
+              icon: const Icon(Icons.radar_rounded, size: 18),
+              label: const Text('Theo dõi realtime trên bản đồ'),
+              style: _mapButtonStyle(),
             ),
+          ),
         ],
-      ),
+      ],
     );
   }
 }

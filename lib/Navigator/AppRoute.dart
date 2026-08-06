@@ -16,6 +16,7 @@ class AppRoute {
   static const String staffTicketDetail = '/staff/ticket-detail';
   static const String staffSosList = '/staff/sos-list';
   static const String staffSosDetail = '/staff/sos-detail';
+  static const String staffSosRealtimeMap = '/staff/sos-realtime-map';
   static const String staffPerformance = '/staff/performance';
   static const String changePassword = '/change-password';
   static const String htmlDocument = '/html-document';

@@ -128,10 +128,14 @@ class StaffSosRepository {
     return StaffActiveSosEntity(
       id: detail.id,
       status: _requestStatusCode(detail.status),
+      code: detail.code,
+      isActive: detail.status != SupportRequestStatus.done &&
+          detail.status != SupportRequestStatus.rejected,
       location: detail.location?.text,
       latitude: detail.location?.latitude,
       longitude: detail.location?.longitude,
       createdAt: detail.createdAt,
+      updatedAt: detail.updatedAt,
       assignedStaff: detail.assignedStaff,
       reporter: detail.reporter == null
           ? null

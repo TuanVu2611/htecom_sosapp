@@ -11,6 +11,7 @@ import 'package:hcmu_sos/View/Common/HtmlDocumentView.dart';
 import 'package:hcmu_sos/View/Common/NotifyView.dart';
 import 'package:hcmu_sos/View/Common/SplashView.dart';
 import 'package:hcmu_sos/View/Staff/SOSDetailView.dart';
+import 'package:hcmu_sos/View/Staff/SOSRealtimeMapView.dart';
 import 'package:hcmu_sos/View/Staff/StaffPerformanceView.dart';
 import 'package:hcmu_sos/View/Staff/StaffDashboardView.dart';
 import 'package:hcmu_sos/View/Staff/StaffInfoView.dart';
@@ -32,6 +33,7 @@ import 'package:hcmu_sos/ViewModel/Staff/StaffHomeViewModel.dart';
 import 'package:hcmu_sos/ViewModel/Staff/StaffInfoViewModel.dart';
 import 'package:hcmu_sos/ViewModel/Staff/SOSDetailViewModel.dart';
 import 'package:hcmu_sos/ViewModel/Staff/SOSListViewModel.dart';
+import 'package:hcmu_sos/ViewModel/Staff/SOSRealtimeMapViewModel.dart';
 import 'package:hcmu_sos/ViewModel/Staff/StaffTicketDetailViewModel.dart';
 import 'package:hcmu_sos/ViewModel/Staff/StaffTaskViewModel.dart';
 import 'package:hcmu_sos/ViewModel/Student/CommentTicketViewModel.dart';
@@ -160,6 +162,13 @@ class AppPage {
       page: () => const SOSViewDetail(),
       binding: BindingsBuilder(() {
         Get.lazyPut<SOSDetailViewModel>(() => SOSDetailViewModel());
+      }),
+    ),
+    GetPage(
+      name: AppRoute.staffSosRealtimeMap,
+      page: () => const SOSRealtimeMapView(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<SOSRealtimeMapViewModel>(() => SOSRealtimeMapViewModel());
       }),
     ),
     GetPage(

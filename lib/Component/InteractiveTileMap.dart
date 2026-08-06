@@ -18,6 +18,7 @@ class InteractiveTileMap extends StatefulWidget {
     this.minZoom = 12,
     this.maxZoom = 19,
     this.onDirections,
+    this.markerBuilder,
   });
 
   final double latitude;
@@ -30,6 +31,7 @@ class InteractiveTileMap extends StatefulWidget {
   final int minZoom;
   final int maxZoom;
   final VoidCallback? onDirections;
+  final Widget Function(Offset position)? markerBuilder;
 
   @override
   State<InteractiveTileMap> createState() => _InteractiveTileMapState();
@@ -95,13 +97,19 @@ class _InteractiveTileMapState extends State<InteractiveTileMap> {
                     child: _buildTileGrid(width: constraints.maxWidth),
                   ),
                   Container(color: Colors.white.withValues(alpha: 0.08)),
-                  _Marker(
-                    position: _markerPosition(
-                      width: constraints.maxWidth,
-                      height: widget.height,
-                    ),
-                    color: widget.dangerColor,
-                  ),
+                  widget.markerBuilder?.call(
+                        _markerPosition(
+                          width: constraints.maxWidth,
+                          height: widget.height,
+                        ),
+                      ) ??
+                      _Marker(
+                        position: _markerPosition(
+                          width: constraints.maxWidth,
+                          height: widget.height,
+                        ),
+                        color: widget.dangerColor,
+                      ),
                   Positioned(
                     left: 10,
                     top: 10,

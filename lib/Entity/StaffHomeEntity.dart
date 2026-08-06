@@ -176,10 +176,13 @@ class StaffActiveSosEntity {
   const StaffActiveSosEntity({
     required this.id,
     required this.status,
+    this.code,
+    this.isActive = true,
     this.location,
     this.latitude,
     this.longitude,
     this.createdAt,
+    this.updatedAt,
     this.assignedStaff,
     this.reporter,
     this.student,
@@ -189,10 +192,13 @@ class StaffActiveSosEntity {
 
   final int id;
   final String status;
+  final String? code;
+  final bool isActive;
   final String? location;
   final double? latitude;
   final double? longitude;
   final DateTime? createdAt;
+  final DateTime? updatedAt;
   final AssignedStaffEntity? assignedStaff;
   final StaffSosReporterEntity? reporter;
   final RequestStudentEntity? student;
@@ -206,6 +212,8 @@ class StaffActiveSosEntity {
     return StaffActiveSosEntity(
       id: StaffHomeEntity._asInt(data['sos_id'] ?? data['id']),
       status: StaffHomeEntity._asString(data['status']) ?? '',
+      code: StaffHomeEntity._asString(data['code']),
+      isActive: StaffHomeEntity._asBool(data['is_active'] ?? true),
       location:
           StaffHomeEntity._asString(data['location_text']) ??
           StaffHomeEntity._asString(data['address']) ??
@@ -225,6 +233,7 @@ class StaffActiveSosEntity {
           StaffHomeEntity._asDouble(locationData['lng']) ??
           StaffHomeEntity._asDouble(locationData['long']),
       createdAt: StaffHomeEntity._asDateTime(data['created_at']),
+      updatedAt: StaffHomeEntity._asDateTime(data['updated_at']),
       assignedStaff:
           data['assigned_staff'] == null || data['assigned_staff'] == false
           ? null
@@ -248,16 +257,25 @@ class StaffActiveSosEntity {
 
   StaffActiveSosEntity copyWith({
     String? status,
+    String? code,
+    bool? isActive,
+    String? location,
+    double? latitude,
+    double? longitude,
+    DateTime? updatedAt,
     List<RequestChecklistEntity>? checklist,
     List<StaffSosTimelineEntity>? timeline,
   }) {
     return StaffActiveSosEntity(
       id: id,
       status: status ?? this.status,
-      location: location,
-      latitude: latitude,
-      longitude: longitude,
+      code: code ?? this.code,
+      isActive: isActive ?? this.isActive,
+      location: location ?? this.location,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
       createdAt: createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       assignedStaff: assignedStaff,
       reporter: reporter,
       student: student,

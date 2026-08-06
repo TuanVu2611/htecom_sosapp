@@ -6,13 +6,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
+import 'package:hcmu_sos/Repository/SosTrackingRepository.dart';
 import 'package:hcmu_sos/Service/ApiCaller.dart';
+import 'package:hcmu_sos/Service/StudentSosTrackingService.dart';
 import 'package:hcmu_sos/Utils/Utils.dart';
 
 enum CreateSOSState { ready, holding, sent }
 
 class CreateSOSViewModel extends GetxController {
+  CreateSOSViewModel({SosTrackingRepository? sosTrackingRepository})
+    : _sosTrackingRepository =
+          sosTrackingRepository ?? SosTrackingRepository();
+
   static const int holdSeconds = 5;
+
+  final SosTrackingRepository _sosTrackingRepository;
 
   final state = CreateSOSState.ready.obs;
   final holdProgress = 0.0.obs;
@@ -28,7 +36,7 @@ class CreateSOSViewModel extends GetxController {
   @override
   void onReady() {
     super.onReady();
-    state.value = CreateSOSState.ready;
+    unawaited(_restoreCurrentSosState());
   }
 
   void startHolding() {
@@ -120,6 +128,13 @@ class CreateSOSViewModel extends GetxController {
 
       sentSosId.value =
           _extractSosId(response.data) ?? _extractSosId(response.raw);
+      final sosId = sentSosId.value;
+      if (sosId != null && sosId > 0) {
+        await StudentSosTrackingService.instance.startTracking(
+          sosId,
+          syncImmediately: true,
+        );
+      }
       await _notifySosSent();
       state.value = CreateSOSState.sent;
     } on ApiException catch (error) {
@@ -161,6 +176,7 @@ class CreateSOSViewModel extends GetxController {
       }
 
       resetToReady();
+      StudentSosTrackingService.instance.stop();
       Utils.showSnackbar(
         title: 'sos.title'.tr,
         content: 'sos.cancelSuccess'.tr,
@@ -258,6 +274,23 @@ class CreateSOSViewModel extends GetxController {
     } catch (_) {
       // Haptics are best-effort and should never block the SOS flow.
     }
+  }
+
+  Future<void> _restoreCurrentSosState() async {
+    state.value = CreateSOSState.ready;
+    try {
+      final status = await _sosTrackingRepository.getCurrentSosStatus();
+      if (status != null && status.canTrack) {
+        sentSosId.value = status.sosId;
+        state.value = CreateSOSState.sent;
+        return;
+      }
+    } catch (_) {
+      // Keep the SOS panel usable even if the restore check fails.
+    }
+
+    sentSosId.value = null;
+    state.value = CreateSOSState.ready;
   }
 
   @override

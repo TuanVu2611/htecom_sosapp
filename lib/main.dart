@@ -12,6 +12,7 @@ import 'package:hcmu_sos/Service/AuthSessionService.dart';
 import 'package:hcmu_sos/Service/AuthSessionStorage.dart';
 import 'package:hcmu_sos/Service/FcmService.dart';
 import 'package:hcmu_sos/Service/PendingTicketSyncService.dart';
+import 'package:hcmu_sos/Service/StudentSosTrackingService.dart';
 import 'package:hcmu_sos/Theme/AppTypography.dart';
 import 'package:hcmu_sos/Utils/StorageManager.dart';
 import 'package:image_picker_android/image_picker_android.dart';
@@ -47,6 +48,20 @@ Future<void> _startAppServices() async {
   } catch (error, stackTrace) {
     developer.log(
       'Pending ticket sync failed to start',
+      name: 'main',
+      error: error,
+      stackTrace: stackTrace,
+    );
+  }
+
+  try {
+    final user = AuthSessionStorage.getUser();
+    if (user != null) {
+      await StudentSosTrackingService.instance.startIfStudent(user);
+    }
+  } catch (error, stackTrace) {
+    developer.log(
+      'Student SOS tracking failed to start',
       name: 'main',
       error: error,
       stackTrace: stackTrace,
