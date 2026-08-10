@@ -155,26 +155,35 @@ class LoginView extends GetWidget<LoginViewModel> {
                                 ),
                               ),
                               const SizedBox(height: 14),
-                              Row(
-                                children: [
-                                  Obx(
-                                    () => _RememberCheckbox(
-                                      value: controller.rememberLogin.value,
-                                      onTap: controller.toggleRememberLogin,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      'auth.rememberLogin'.tr,
-                                      style: AppTextStyles.body.copyWith(
-                                        color: _mutedTextColor,
-                                        fontSize: AppFontSizes.md,
-                                        height: 1.2,
+                              LayoutBuilder(
+                                builder: (context, rowConstraints) {
+                                  final compactActions =
+                                      rowConstraints.maxWidth < 330;
+
+                                  final rememberSection = Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Obx(
+                                        () => _RememberCheckbox(
+                                          value: controller.rememberLogin.value,
+                                          onTap: controller.toggleRememberLogin,
+                                        ),
                                       ),
-                                    ),
-                                  ),
-                                  TextButton(
+                                      const SizedBox(width: 8),
+                                      Flexible(
+                                        child: Text(
+                                          'auth.rememberLogin'.tr,
+                                          style: AppTextStyles.body.copyWith(
+                                            color: _mutedTextColor,
+                                            fontSize: AppFontSizes.md,
+                                            height: 1.2,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+
+                                  final forgotButton = TextButton(
                                     onPressed: controller.forgotPassword,
                                     style: TextButton.styleFrom(
                                       foregroundColor: const Color(0xFF33343C),
@@ -182,6 +191,9 @@ class LoginView extends GetWidget<LoginViewModel> {
                                       minimumSize: const Size(0, 34),
                                       tapTargetSize:
                                           MaterialTapTargetSize.shrinkWrap,
+                                      alignment: compactActions
+                                          ? Alignment.centerLeft
+                                          : Alignment.centerRight,
                                     ),
                                     child: Text(
                                       'auth.forgotPassword'.tr,
@@ -190,8 +202,28 @@ class LoginView extends GetWidget<LoginViewModel> {
                                         color: const Color(0xFF33343C),
                                       ),
                                     ),
-                                  ),
-                                ],
+                                  );
+
+                                  if (compactActions) {
+                                    return Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        rememberSection,
+                                        const SizedBox(height: 6),
+                                        forgotButton,
+                                      ],
+                                    );
+                                  }
+
+                                  return Row(
+                                    children: [
+                                      Expanded(child: rememberSection),
+                                      const SizedBox(width: 12),
+                                      forgotButton,
+                                    ],
+                                  );
+                                },
                               ),
                               const SizedBox(height: 15),
                               _RegisterPrompt(onTap: controller.register),
@@ -425,32 +457,33 @@ class _RegisterPrompt extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: const Color(0xFFE8EAF2)),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Wrap(
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 6,
+          runSpacing: 4,
           children: [
             Icon(
               Icons.school_outlined,
               size: 18,
               color: LoginView._primaryColor.withValues(alpha: 0.8),
             ),
-            const SizedBox(width: 8),
             Text(
-              'Bạn chưa có tài khoản sinh viên?',
+              'auth.noAccount'.tr.trim(),
+              textAlign: TextAlign.center,
               style: AppTextStyles.body.copyWith(
                 color: LoginView._mutedTextColor,
                 fontSize: AppFontSizes.md,
               ),
             ),
-            const SizedBox(width: 6),
             Text(
-              'Đăng ký',
+              'auth.register'.tr,
               style: AppTextStyles.bodyStrong.copyWith(
                 color: LoginView._primaryColor,
                 fontSize: AppFontSizes.md,
                 fontWeight: FontWeight.w700,
               ),
             ),
-            const SizedBox(width: 2),
             Icon(
               Icons.arrow_forward_ios_rounded,
               size: 13,
