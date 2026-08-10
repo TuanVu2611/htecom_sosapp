@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:get/get.dart';
 import 'package:hcmu_sos/Entity/AuthUserEntity.dart';
 import 'package:hcmu_sos/Entity/SosTrackingEntity.dart';
 import 'package:hcmu_sos/Repository/SosTrackingRepository.dart';
@@ -241,9 +242,9 @@ class StudentSosTrackingService with WidgetsBindingObserver {
         accuracy: LocationAccuracy.bestForNavigation,
         distanceFilter: _distanceFilterInMeters,
         intervalDuration: _minimumUploadInterval,
-        foregroundNotificationConfig: const ForegroundNotificationConfig(
-          notificationTitle: 'SOS đang hoạt động',
-          notificationText: 'Ứng dụng đang cập nhật vị trí SOS của bạn.',
+        foregroundNotificationConfig: ForegroundNotificationConfig(
+          notificationTitle: 'staff.sosRealtime.notificationTitle'.tr,
+          notificationText: 'staff.sosRealtime.notificationBody'.tr,
           enableWakeLock: true,
         ),
       );

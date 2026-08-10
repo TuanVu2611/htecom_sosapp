@@ -263,6 +263,22 @@ class AppTranslations extends Translations {
       'staff.ticket.missingId': 'Thiếu mã ticket.',
       'staff.ticket.loadFailed': 'Không thể tải chi tiết ticket.',
       'staff.ticket.updateSuccess': 'Cập nhật trạng thái thành công.',
+      'staff.sosRealtime.title': 'Theo dõi vị trí SOS',
+      'staff.sosRealtime.statusTracking': 'Đang theo dõi',
+      'staff.sosRealtime.statusStopped': 'Đã dừng',
+      'staff.sosRealtime.emptyLocation': 'Chưa có tọa độ SOS để theo dõi.',
+      'staff.sosRealtime.errorMissingSos':
+          'Không xác định được SOS để theo dõi.',
+      'staff.sosRealtime.errorRefresh': 'Không thể cập nhật vị trí SOS.',
+      'staff.sosRealtime.updatedAt': 'Cập nhật',
+      'staff.sosRealtime.stoppedAt': 'Đã dừng theo dõi',
+      'staff.sosRealtime.noData': 'Chưa có dữ liệu',
+      'staff.sosRealtime.liveBadge': 'Live',
+      'staff.sosRealtime.stopBadge': 'Dừng',
+      'staff.sosRealtime.openMap': 'Theo dõi vị trí realtime trên bản đồ',
+      'staff.sosRealtime.notificationTitle': 'SOS đang hoạt động',
+      'staff.sosRealtime.notificationBody':
+          'Ứng dụng đang cập nhật vị trí SOS của bạn.',
       'staff.ticket.updateFailed': 'Không thể cập nhật trạng thái.',
       'staff.ticket.acceptancePhotoTooLarge': 'Ảnh không được vượt quá 5MB.',
       'staff.ticket.acceptancePickFailed': 'Không thể chọn ảnh.',
@@ -315,10 +331,8 @@ class AppTranslations extends Translations {
       'auth.deactivateAccountPasswordHint': 'Nhập mật khẩu',
       'auth.deactivateAccountPasswordRequired':
           'Vui lòng nhập mật khẩu để xác nhận.',
-      'auth.deactivateAccountSuccess':
-          'Tài khoản của bạn đã được vô hiệu hoá.',
-      'auth.deactivateAccountFailed':
-          'Không thể xoá tài khoản lúc này.',
+      'auth.deactivateAccountSuccess': 'Tài khoản của bạn đã được vô hiệu hoá.',
+      'auth.deactivateAccountFailed': 'Không thể xoá tài khoản lúc này.',
       'notice.title': 'Thông báo',
       'student.info.title': 'Thông tin tài khoản',
       'student.info.editTitle': 'Chỉnh sửa thông tin',
@@ -357,6 +371,8 @@ class AppTranslations extends Translations {
       'sos.sentTitle': 'SOS đã gửi!',
       'sos.sentDescription':
           'Tín hiệu khẩn cấp đã được gửi đến cán bộ\nvà các sinh viên gần bạn (1km)',
+      'sos.keepAppOpenHint':
+          'Hãy giữ ứng dụng hoạt động để cán bộ có thể theo dõi vị trí của bạn và hỗ trợ kịp thời.',
       'sos.cancel': 'Hủy SOS',
       'sos.cancelDialogTitle': 'Hủy SOS',
       'sos.cancelDialogMessage': 'Vui lòng nhập lý do trước khi hủy SOS.',
@@ -632,6 +648,23 @@ class AppTranslations extends Translations {
       'staff.ticket.missingId': 'Missing ticket id.',
       'staff.ticket.loadFailed': 'Could not load ticket detail.',
       'staff.ticket.updateSuccess': 'Status updated successfully.',
+      'staff.sosRealtime.title': 'Track SOS location',
+      'staff.sosRealtime.statusTracking': 'Tracking',
+      'staff.sosRealtime.statusStopped': 'Stopped',
+      'staff.sosRealtime.emptyLocation':
+          'No SOS coordinates are available for tracking.',
+      'staff.sosRealtime.errorMissingSos':
+          'Cannot determine which SOS to track.',
+      'staff.sosRealtime.errorRefresh': 'Unable to refresh the SOS location.',
+      'staff.sosRealtime.updatedAt': 'Updated',
+      'staff.sosRealtime.stoppedAt': 'Tracking stopped',
+      'staff.sosRealtime.noData': 'No data yet',
+      'staff.sosRealtime.liveBadge': 'Live',
+      'staff.sosRealtime.stopBadge': 'Stop',
+      'staff.sosRealtime.openMap': 'Open realtime map',
+      'staff.sosRealtime.notificationTitle': 'SOS is active',
+      'staff.sosRealtime.notificationBody':
+          'The app is updating your SOS location.',
       'staff.ticket.updateFailed': 'Could not update status.',
       'staff.ticket.acceptancePhotoTooLarge': 'Photo must not exceed 5MB.',
       'staff.ticket.acceptancePickFailed': 'Could not choose photos.',
@@ -683,10 +716,8 @@ class AppTranslations extends Translations {
       'auth.deactivateAccountPasswordHint': 'Enter password',
       'auth.deactivateAccountPasswordRequired':
           'Please enter your password to confirm.',
-      'auth.deactivateAccountSuccess':
-          'Your account has been deactivated.',
-      'auth.deactivateAccountFailed':
-          'Could not delete the account right now.',
+      'auth.deactivateAccountSuccess': 'Your account has been deactivated.',
+      'auth.deactivateAccountFailed': 'Could not delete the account right now.',
       'notice.title': 'Notice',
       'student.info.title': 'Account information',
       'student.info.editTitle': 'Edit information',
@@ -725,6 +756,8 @@ class AppTranslations extends Translations {
       'sos.sentTitle': 'SOS sent!',
       'sos.sentDescription':
           'The emergency signal has been sent to staff\nand nearby students within 1km.',
+      'sos.keepAppOpenHint':
+          'Please keep the app running so staff can track your location and assist you promptly.',
       'sos.cancel': 'Cancel SOS',
       'sos.cancelDialogTitle': 'Cancel SOS',
       'sos.cancelDialogMessage': 'Please enter a reason before cancelling SOS.',

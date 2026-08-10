@@ -55,7 +55,7 @@ class SOSRealtimeMapView extends GetWidget<SOSRealtimeMapViewModel> {
                                     color: const Color(0xFFEFF2F6),
                                     alignment: Alignment.center,
                                     child: Text(
-                                      'Chưa có tọa độ SOS để theo dõi.',
+                                      'staff.sosRealtime.emptyLocation'.tr,
                                       style: AppTextStyles.bodyStrong.copyWith(
                                         color: _mutedColor,
                                       ),
@@ -99,7 +99,7 @@ class _Header extends StatelessWidget {
           ),
           Expanded(
             child: Text(
-              'Theo dõi vị trí SOS',
+              'staff.sosRealtime.title'.tr,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: AppTextStyles.subtitle.copyWith(
@@ -119,7 +119,9 @@ class _Header extends StatelessWidget {
               borderRadius: BorderRadius.circular(999),
             ),
             child: Text(
-              isActive ? 'Đang theo dõi' : 'Đã dừng',
+              isActive
+                  ? 'staff.sosRealtime.statusTracking'.tr
+                  : 'staff.sosRealtime.statusStopped'.tr,
               style: AppTextStyles.caption.copyWith(
                 color: isActive
                     ? SOSRealtimeMapView._dangerColor
@@ -190,7 +192,7 @@ class _BottomInfoCard extends StatelessWidget {
                     Flexible(
                       child: Text(
                         code == null || code.trim().isEmpty
-                            ? 'SOS #${item?.id ?? '--'}'
+                            ? '${'sos.title'.tr} #${item?.id ?? '--'}'
                             : code,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -249,14 +251,14 @@ class _BottomInfoCard extends StatelessWidget {
   }) {
     final timestamp = _formatDateTime(lastUpdatedAt);
     if (isActive) {
-      return 'Cập nhật $timestamp';
+      return '${'staff.sosRealtime.updatedAt'.tr} $timestamp';
     }
-    return 'Đã dừng theo dõi · $timestamp';
+    return '${'staff.sosRealtime.stoppedAt'.tr} · $timestamp';
   }
 
   String _formatDateTime(DateTime? value) {
     if (value == null) {
-      return 'Chưa có dữ liệu';
+      return 'staff.sosRealtime.noData'.tr;
     }
     final hour = value.hour.toString().padLeft(2, '0');
     final minute = value.minute.toString().padLeft(2, '0');
@@ -310,7 +312,9 @@ class _StatusPill extends StatelessWidget {
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
-        isActive ? 'Live' : 'Dừng',
+        isActive
+            ? 'staff.sosRealtime.liveBadge'.tr
+            : 'staff.sosRealtime.stopBadge'.tr,
         style: AppTextStyles.caption.copyWith(
           color: color,
           fontSize: AppFontSizes.xs,

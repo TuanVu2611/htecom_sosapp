@@ -449,6 +449,54 @@ class _SentSOSView extends StatelessWidget {
                     ),
                   ),
                 ),
+                const SizedBox(height: 18),
+                Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 310),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF6F7FC),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: const Color(0xFFE5E8F3)),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 24,
+                            height: 24,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFE9EDFF),
+                              shape: BoxShape.circle,
+                            ),
+                            alignment: Alignment.center,
+                            child: const Icon(
+                              Icons.info_outline_rounded,
+                              size: 15,
+                              color: CreateSOSView._primaryColor,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'sos.keepAppOpenHint'.tr,
+                              style: AppTextStyles.body.copyWith(
+                                color: const Color(0xFF666D80),
+                                fontSize: AppFontSizes.sm,
+                                fontWeight: FontWeight.w700,
+                                height: 1.45,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 66),
                 Center(
                   child: SizedBox(

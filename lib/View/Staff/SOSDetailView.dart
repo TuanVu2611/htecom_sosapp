@@ -108,6 +108,7 @@ class _MapSection extends StatelessWidget {
     final latitude = item.latitude;
     final longitude = item.longitude;
     final hasCoordinates = latitude != null && longitude != null;
+    final canOpenRealtimeMap = hasCoordinates && _canTrackRealtime(item);
 
     return Column(
       children: [
@@ -146,24 +147,77 @@ class _MapSection extends StatelessWidget {
             ],
           ),
         ),
-        if (hasCoordinates) ...[
-          const SizedBox(height: 10),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () => Get.toNamed(
+        if (canOpenRealtimeMap) ...[
+          const SizedBox(height: 8),
+          Material(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+            child: InkWell(
+              onTap: () => Get.toNamed(
                 AppRoute.staffSosRealtimeMap,
                 arguments: item,
               ),
-              icon: const Icon(Icons.radar_rounded, size: 18),
-              label: const Text('Theo dõi realtime trên bản đồ'),
-              style: _mapButtonStyle(),
+              borderRadius: BorderRadius.circular(12),
+              child: Ink(
+                padding: const EdgeInsets.fromLTRB(10, 9, 8, 9),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFE7EAF5)),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 26,
+                      height: 26,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFEFF2FF),
+                        shape: BoxShape.circle,
+                      ),
+                      alignment: Alignment.center,
+                      child: const Icon(
+                        Icons.radar_rounded,
+                        size: 14,
+                        color: Color(0xFF4C5AA8),
+                      ),
+                    ),
+                    const SizedBox(width: 9),
+                    Expanded(
+                      child: Text(
+                        'staff.sosRealtime.openMap'.tr,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.bodyStrong.copyWith(
+                          color: SOSViewDetail._primaryColor,
+                          fontSize: AppFontSizes.sm,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    const Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 11,
+                      color: Color(0xFF8A92B2),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ],
       ],
     );
   }
+}
+
+bool _canTrackRealtime(StaffActiveSosEntity item) {
+  if (!item.isActive) {
+    return false;
+  }
+
+  final status = item.status.trim().toLowerCase();
+  return status == 'pending' || status == 'in_progress' || status == 'reopened';
 }
 
 class _InfoCard extends StatelessWidget {

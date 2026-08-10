@@ -44,7 +44,7 @@ class SOSRealtimeMapViewModel extends GetxController {
   void onReady() {
     super.onReady();
     if ((_sosId ?? 0) <= 0) {
-      errorMessage.value = 'Không xác định được SOS để theo dõi.';
+      errorMessage.value = 'staff.sosRealtime.errorMissingSos'.tr;
       isLoading.value = false;
       return;
     }
@@ -74,7 +74,7 @@ class SOSRealtimeMapViewModel extends GetxController {
     } on ApiException catch (error) {
       errorMessage.value = error.message;
     } catch (_) {
-      errorMessage.value = 'Không thể cập nhật vị trí SOS.';
+      errorMessage.value = 'staff.sosRealtime.errorRefresh'.tr;
     } finally {
       isLoading.value = false;
     }
