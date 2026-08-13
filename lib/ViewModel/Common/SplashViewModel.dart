@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:get/get.dart';
 import 'package:hcmu_sos/Entity/AuthUserEntity.dart';
 import 'package:hcmu_sos/Navigator/AppRoute.dart';
+import 'package:hcmu_sos/Service/AppLocationRequirementService.dart';
 import 'package:hcmu_sos/Service/AuthSessionService.dart';
 import 'package:hcmu_sos/Service/StaffLocationUpdateService.dart';
 import 'package:hcmu_sos/Service/StudentSosTrackingService.dart';
@@ -26,6 +27,7 @@ class SplashViewModel extends GetxController {
 
     final user = await _authSessionService.restoreSession();
     if (user == null) {
+      AppLocationRequirementService.instance.stop();
       Get.offAllNamed(AppRoute.login);
       return;
     }
@@ -34,6 +36,7 @@ class SplashViewModel extends GetxController {
   }
 
   void _openDashboard(AuthUserEntity user) {
+    AppLocationRequirementService.instance.startForUser(user);
     StaffLocationUpdateService.instance.startIfStaff(user);
     unawaited(StudentSosTrackingService.instance.startIfStudent(user));
     switch (user.role) {

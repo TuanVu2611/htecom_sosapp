@@ -1,4 +1,4 @@
-// ignore_for_file: file_names
+﻿// ignore_for_file: file_names
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -87,7 +87,7 @@ class MenuView extends GetWidget<MenuViewModel> {
                           en: 'Dormitory support hotline',
                         ),
                         trailing: Text(
-                          '1900-56789',
+                          '1900 055559',
                           style: AppTextStyles.bodyStrong.copyWith(
                             color: _primaryColor,
                             fontSize: AppFontSizes.base,
@@ -159,8 +159,10 @@ class MenuView extends GetWidget<MenuViewModel> {
                           iconColor: const Color(0xFFD92D20),
                           titleColor: const Color(0xFFD92D20),
                           title: 'auth.deactivateAccount'.tr,
-                          onTap: () =>
-                              _showDeactivateAccountConfirm(context, controller),
+                          onTap: () => _showDeactivateAccountConfirm(
+                            context,
+                            controller,
+                          ),
                         ),
                       _MenuActionTile(
                         icon: Icons.logout_rounded,
@@ -1084,10 +1086,10 @@ void _showDeactivateAccountConfirm(
                             ? null
                             : () async {
                                 final navigator = Navigator.of(context);
-                                final success =
-                                    await controller.deactivateAccount(
-                                  password: passwordController.text,
-                                );
+                                final success = await controller
+                                    .deactivateAccount(
+                                      password: passwordController.text,
+                                    );
                                 if (success && navigator.mounted) {
                                   navigator.pop();
                                 }

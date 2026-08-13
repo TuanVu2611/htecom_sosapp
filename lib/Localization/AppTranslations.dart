@@ -142,6 +142,17 @@ class AppTranslations extends Translations {
       'ticket.validation.location': 'Vui lòng nhập vị trí',
       'ticket.validation.photoRequired': 'Vui lòng thêm ít nhất 1 ảnh',
       'ticket.validation.photoTooLarge': 'Mỗi ảnh không được vượt quá 5MB',
+      'location.serviceDisabled': 'Vui lòng bật dịch vụ vị trí để tiếp tục.',
+      'location.permissionRequired': 'Vui lòng cấp quyền vị trí để tiếp tục.',
+      'location.currentUnavailable':
+          'Không thể lấy vị trí hiện tại. Vui lòng thử lại.',
+      'location.dialogTitle': 'Bật vị trí để tiếp tục',
+      'location.appRequireEnabled':
+          'Ứng dụng cần bật định vị để hỗ trợ SOS, cập nhật vị trí và xử lý yêu cầu nhanh hơn.',
+      'location.appPermissionRequired':
+          'Ứng dụng cần quyền truy cập vị trí để hỗ trợ SOS, cập nhật vị trí và xử lý yêu cầu chính xác hơn.',
+      'location.openServiceSettings': 'Mở định vị',
+      'location.openAppSettings': 'Mở cài đặt',
       'ticket.detail.title': 'Chi tiết yêu cầu',
       'ticket.detail.errorMissingId': 'Thiếu mã yêu cầu',
       'ticket.detail.errorLoadFailed': 'Không thể tải chi tiết yêu cầu',
@@ -527,6 +538,19 @@ class AppTranslations extends Translations {
       'ticket.validation.location': 'Please enter the location',
       'ticket.validation.photoRequired': 'Please add at least 1 photo',
       'ticket.validation.photoTooLarge': 'Each photo must not exceed 5MB',
+      'location.serviceDisabled':
+          'Please enable location services to continue.',
+      'location.permissionRequired':
+          'Please grant location permission to continue.',
+      'location.currentUnavailable':
+          'Unable to get the current location. Please try again.',
+      'location.dialogTitle': 'Turn on location to continue',
+      'location.appRequireEnabled':
+          'The app needs Location Services turned on to support SOS, location updates, and faster request handling.',
+      'location.appPermissionRequired':
+          'The app needs location permission to support SOS, location updates, and more accurate request handling.',
+      'location.openServiceSettings': 'Open location',
+      'location.openAppSettings': 'Open settings',
       'ticket.detail.title': 'Request detail',
       'ticket.detail.errorMissingId': 'Missing request id',
       'ticket.detail.errorLoadFailed': 'Could not load request detail',

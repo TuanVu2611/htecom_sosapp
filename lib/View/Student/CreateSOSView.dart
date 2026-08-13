@@ -414,130 +414,149 @@ class _SentSOSView extends StatelessWidget {
       backgroundColor: Colors.white,
       body: SafeArea(
         bottom: false,
-        child: SizedBox.expand(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(24, 28, 24, 106),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Spacer(flex: 3),
-                const Center(child: _SentIcon()),
-                const SizedBox(height: 44),
-                Text(
-                  'sos.sentTitle'.tr,
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.h3.copyWith(
-                    color: CreateSOSView._dangerColor,
-                    fontSize: AppFontSizes.h3,
-                    fontWeight: FontWeight.w900,
-                    height: 1.12,
-                  ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final compact = constraints.maxHeight < 760;
+            final iconSize = compact ? 210.0 : 260.0;
+            final topSpacing = compact ? 16.0 : 28.0;
+            final titleSpacing = compact ? 28.0 : 44.0;
+            final noteSpacing = compact ? 14.0 : 18.0;
+            final buttonSpacing = compact ? 32.0 : 66.0;
+            final bottomPadding = compact ? 32.0 : 106.0;
+
+            return SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(24, topSpacing, 24, bottomPadding),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight - topSpacing - bottomPadding,
                 ),
-                const SizedBox(height: 12),
-                Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 280),
-                    child: Text(
-                      'sos.sentDescription'.tr,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SizedBox(height: compact ? 8 : 18),
+                    Center(child: _SentIcon(size: iconSize)),
+                    SizedBox(height: titleSpacing),
+                    Text(
+                      'sos.sentTitle'.tr,
                       textAlign: TextAlign.center,
-                      style: AppTextStyles.bodyStrong.copyWith(
-                        color: const Color(0xFF8D93A3),
-                        fontSize: AppFontSizes.md,
-                        fontWeight: FontWeight.w700,
-                        height: 1.34,
+                      style: AppTextStyles.h3.copyWith(
+                        color: CreateSOSView._dangerColor,
+                        fontSize: compact ? AppFontSizes.xxl : AppFontSizes.h3,
+                        fontWeight: FontWeight.w900,
+                        height: 1.12,
                       ),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 18),
-                Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 310),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF6F7FC),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: const Color(0xFFE5E8F3)),
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            width: 24,
-                            height: 24,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFE9EDFF),
-                              shape: BoxShape.circle,
-                            ),
-                            alignment: Alignment.center,
-                            child: const Icon(
-                              Icons.info_outline_rounded,
-                              size: 15,
-                              color: CreateSOSView._primaryColor,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              'sos.keepAppOpenHint'.tr,
-                              style: AppTextStyles.body.copyWith(
-                                color: const Color(0xFF666D80),
-                                fontSize: AppFontSizes.sm,
-                                fontWeight: FontWeight.w700,
-                                height: 1.45,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 66),
-                Center(
-                  child: SizedBox(
-                    width: 174,
-                    height: 46,
-                    child: Obx(
-                      () => OutlinedButton(
-                        onPressed: controller.isCancelling.value
-                            ? null
-                            : controller.cancelSentSOS,
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: CreateSOSView._primaryColor,
-                          side: const BorderSide(
-                            color: CreateSOSView._primaryColor,
-                            width: 1.15,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(9),
-                          ),
-                          textStyle: AppTextStyles.bodyStrong.copyWith(
+                    const SizedBox(height: 12),
+                    Center(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: compact ? 270 : 280,
+                        ),
+                        child: Text(
+                          'sos.sentDescription'.tr,
+                          textAlign: TextAlign.center,
+                          style: AppTextStyles.bodyStrong.copyWith(
+                            color: const Color(0xFF8D93A3),
                             fontSize: AppFontSizes.md,
-                            fontWeight: FontWeight.w900,
+                            fontWeight: FontWeight.w700,
+                            height: 1.34,
                           ),
                         ),
-                        child: controller.isCancelling.value
-                            ? const SizedBox(
-                                width: 19,
-                                height: 19,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.1,
-                                ),
-                              )
-                            : Text('sos.cancel'.tr),
                       ),
                     ),
-                  ),
+                    SizedBox(height: noteSpacing),
+                    Center(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: compact ? 300 : 310,
+                        ),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: compact ? 12 : 14,
+                            vertical: compact ? 10 : 12,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF6F7FC),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: const Color(0xFFE5E8F3)),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                width: 24,
+                                height: 24,
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFFE9EDFF),
+                                  shape: BoxShape.circle,
+                                ),
+                                alignment: Alignment.center,
+                                child: const Icon(
+                                  Icons.info_outline_rounded,
+                                  size: 15,
+                                  color: CreateSOSView._primaryColor,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  'sos.keepAppOpenHint'.tr,
+                                  style: AppTextStyles.body.copyWith(
+                                    color: const Color(0xFF666D80),
+                                    fontSize: AppFontSizes.sm,
+                                    fontWeight: FontWeight.w700,
+                                    height: 1.45,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: buttonSpacing),
+                    Center(
+                      child: SizedBox(
+                        width: 174,
+                        height: 46,
+                        child: Obx(
+                          () => OutlinedButton(
+                            onPressed: controller.isCancelling.value
+                                ? null
+                                : controller.cancelSentSOS,
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: CreateSOSView._primaryColor,
+                              side: const BorderSide(
+                                color: CreateSOSView._primaryColor,
+                                width: 1.15,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(9),
+                              ),
+                              textStyle: AppTextStyles.bodyStrong.copyWith(
+                                fontSize: AppFontSizes.md,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                            child: controller.isCancelling.value
+                                ? const SizedBox(
+                                    width: 19,
+                                    height: 19,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.1,
+                                    ),
+                                  )
+                                : Text('sos.cancel'.tr),
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: compact ? 20 : 32),
+                  ],
                 ),
-                const Spacer(flex: 4),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -545,22 +564,27 @@ class _SentSOSView extends StatelessWidget {
 }
 
 class _SentIcon extends StatelessWidget {
-  const _SentIcon();
+  const _SentIcon({this.size = 260});
+
+  final double size;
 
   @override
   Widget build(BuildContext context) {
+    final imageSize = size * 0.3538;
+    final circleSizes = <({double size, double opacity})>[
+      (size: size * 0.9769, opacity: 0.045),
+      (size: size * 0.8308, opacity: 0.065),
+      (size: size * 0.6769, opacity: 0.095),
+      (size: size * 0.5231, opacity: 0.12),
+    ];
+
     return SizedBox(
-      width: 260,
-      height: 260,
+      width: size,
+      height: size,
       child: Stack(
         alignment: Alignment.center,
         children: [
-          for (final item in const <({double size, double opacity})>[
-            (size: 254, opacity: 0.045),
-            (size: 216, opacity: 0.065),
-            (size: 176, opacity: 0.095),
-            (size: 136, opacity: 0.12),
-          ])
+          for (final item in circleSizes)
             Container(
               width: item.size,
               height: item.size,
@@ -575,8 +599,8 @@ class _SentIcon extends StatelessWidget {
               ),
             ),
           Container(
-            width: 116,
-            height: 116,
+            width: size * 0.4462,
+            height: size * 0.4462,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 begin: Alignment.topCenter,
@@ -595,8 +619,8 @@ class _SentIcon extends StatelessWidget {
           ),
           Image.asset(
             'assets/image/icon_sos_done.png',
-            width: 92,
-            height: 92,
+            width: imageSize,
+            height: imageSize,
             fit: BoxFit.contain,
           ),
         ],

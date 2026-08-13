@@ -11,6 +11,7 @@ import 'package:hcmu_sos/Entity/AuthUserEntity.dart';
 import 'package:hcmu_sos/Navigator/AppRoute.dart';
 import 'package:hcmu_sos/Repository/AuthRepository.dart';
 import 'package:hcmu_sos/Service/ApiCaller.dart';
+import 'package:hcmu_sos/Service/AppLocationRequirementService.dart';
 import 'package:hcmu_sos/Service/AuthSessionService.dart';
 import 'package:hcmu_sos/Service/AuthSessionStorage.dart';
 import 'package:hcmu_sos/Service/FcmService.dart';
@@ -156,6 +157,7 @@ class LoginViewModel extends GetxController {
   }
 
   void _openDashboard(AuthUserEntity user) {
+    AppLocationRequirementService.instance.startForUser(user);
     StaffLocationUpdateService.instance.startIfStaff(user);
     unawaited(StudentSosTrackingService.instance.startIfStudent(user));
     switch (user.role) {
