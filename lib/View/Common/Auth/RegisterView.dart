@@ -154,6 +154,7 @@ class _RegisterFormStep extends StatelessWidget {
               child: Obx(
                 () => _IdCardUploadCard(
                   label: 'auth.idCardFront'.tr,
+                  isOptional: true,
                   imageBytes: controller.idCardFrontImageBytes.value,
                   focusNode: controller.focusNode(RegisterField.idCardFront),
                   errorText: controller.errorText(RegisterField.idCardFront),
@@ -166,6 +167,7 @@ class _RegisterFormStep extends StatelessWidget {
               child: Obx(
                 () => _IdCardUploadCard(
                   label: 'auth.idCardBack'.tr,
+                  isOptional: true,
                   imageBytes: controller.idCardBackImageBytes.value,
                   focusNode: controller.focusNode(RegisterField.idCardBack),
                   errorText: controller.errorText(RegisterField.idCardBack),
@@ -635,6 +637,7 @@ class _IdCardUploadCard extends StatelessWidget {
     required this.imageBytes,
     required this.focusNode,
     required this.onTap,
+    this.isOptional = false,
     this.errorText,
   });
 
@@ -642,6 +645,7 @@ class _IdCardUploadCard extends StatelessWidget {
   final Uint8List? imageBytes;
   final FocusNode focusNode;
   final VoidCallback onTap;
+  final bool isOptional;
   final String? errorText;
 
   @override
@@ -691,14 +695,31 @@ class _IdCardUploadCard extends StatelessWidget {
                           size: 24,
                         ),
                         const SizedBox(height: 8),
-                        Text(
-                          label,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTextStyles.bodyStrong.copyWith(
-                            color: RegisterView._primaryColor,
-                            fontSize: AppFontSizes.md,
-                          ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                label,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppTextStyles.bodyStrong.copyWith(
+                                  color: RegisterView._primaryColor,
+                                  fontSize: AppFontSizes.md,
+                                ),
+                              ),
+                            ),
+                            if (isOptional) ...[
+                              const SizedBox(width: 4),
+                              Text(
+                                'auth.optional'.tr,
+                                style: AppTextStyles.caption.copyWith(
+                                  color: RegisterView._mutedTextColor,
+                                  fontSize: AppFontSizes.xs,
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                       ],
                     ),

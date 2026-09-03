@@ -230,20 +230,26 @@ class RegisterViewModel extends GetxController {
 
     isRegistering.value = true;
     try {
-      final idCardFrontFileId = await Utils.uploadFile(
-        bytes: idCardFrontImageBytes.value!,
-        fileName: idCardFrontImageName.value ?? 'id_card_front.jpg',
-        mimeType: idCardFrontMimeType.value ?? 'image/jpeg',
-        purpose: 'student_card',
-        skipAuth: true,
-      );
-      final idCardBackFileId = await Utils.uploadFile(
-        bytes: idCardBackImageBytes.value!,
-        fileName: idCardBackImageName.value ?? 'id_card_back.jpg',
-        mimeType: idCardBackMimeType.value ?? 'image/jpeg',
-        purpose: 'student_card',
-        skipAuth: true,
-      );
+      final idCardFrontBytes = idCardFrontImageBytes.value;
+      final idCardFrontFileId = idCardFrontBytes == null
+          ? null
+          : await Utils.uploadFile(
+              bytes: idCardFrontBytes,
+              fileName: idCardFrontImageName.value ?? 'id_card_front.jpg',
+              mimeType: idCardFrontMimeType.value ?? 'image/jpeg',
+              purpose: 'student_card',
+              skipAuth: true,
+            );
+      final idCardBackBytes = idCardBackImageBytes.value;
+      final idCardBackFileId = idCardBackBytes == null
+          ? null
+          : await Utils.uploadFile(
+              bytes: idCardBackBytes,
+              fileName: idCardBackImageName.value ?? 'id_card_back.jpg',
+              mimeType: idCardBackMimeType.value ?? 'image/jpeg',
+              purpose: 'student_card',
+              skipAuth: true,
+            );
       final studentCardFrontFileId = await Utils.uploadFile(
         bytes: studentCardFrontImageBytes.value!,
         fileName: studentCardFrontImageName.value ?? 'student_card_front.jpg',
@@ -427,13 +433,6 @@ class RegisterViewModel extends GetxController {
       errors[RegisterField.cccd] = 'auth.validation.cccdRequired';
     } else if (!RegExp(r'^[a-zA-Z0-9]{9,30}$').hasMatch(cccd)) {
       errors[RegisterField.cccd] = 'auth.validation.cccdInvalid';
-    }
-
-    if (idCardFrontImageBytes.value == null) {
-      errors[RegisterField.idCardFront] = 'auth.validation.idCardFrontRequired';
-    }
-    if (idCardBackImageBytes.value == null) {
-      errors[RegisterField.idCardBack] = 'auth.validation.idCardBackRequired';
     }
 
     if (studentCode.isEmpty) {

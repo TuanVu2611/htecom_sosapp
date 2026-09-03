@@ -23,7 +23,7 @@ Future<void> main() async {
   _configureImagePicker();
   await StorageManager.init();
   ApiCaller.configure(
-    baseUrl: 'https://appsos.htecom.com/api/v1/',
+    baseUrl: 'https://smartcampus.ktxhcm.edu.vn/api/v1/',
     tokenProvider: AuthSessionStorage.getAccessToken,
     refreshToken: () => AuthSessionService().refreshToken(),
   );

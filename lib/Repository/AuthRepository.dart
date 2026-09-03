@@ -29,8 +29,8 @@ abstract class AuthRepository {
     required int schoolId,
     required int studentCardFrontFileId,
     required int studentCardBackFileId,
-    required int nationalCardFrontId,
-    required int nationalCardBackId,
+    int? nationalCardFrontId,
+    int? nationalCardBackId,
     required String password,
     required String confirmPassword,
   });
@@ -165,8 +165,8 @@ class MockAuthRepository implements AuthRepository {
     required int schoolId,
     required int studentCardFrontFileId,
     required int studentCardBackFileId,
-    required int nationalCardFrontId,
-    required int nationalCardBackId,
+    int? nationalCardFrontId,
+    int? nationalCardBackId,
     required String password,
     required String confirmPassword,
   }) async {
@@ -314,13 +314,12 @@ class ApiAuthRepository implements AuthRepository {
     required int schoolId,
     required int studentCardFrontFileId,
     required int studentCardBackFileId,
-    required int nationalCardFrontId,
-    required int nationalCardBackId,
+    int? nationalCardFrontId,
+    int? nationalCardBackId,
     required String password,
     required String confirmPassword,
   }) async {
-    final response = await _apiCaller
-        .postBase<Object?>('auth/register', <String, dynamic>{
+    final payload = <String, dynamic>{
           'full_name': fullName,
           'phone': phone,
           'email': email,
@@ -329,11 +328,21 @@ class ApiAuthRepository implements AuthRepository {
           'school_id': schoolId,
           'student_card_front_file_id': studentCardFrontFileId,
           'student_card_back_file_id': studentCardBackFileId,
-          'national_card_front_id': nationalCardFrontId,
-          'national_card_back_id': nationalCardBackId,
           'password': password,
           'confirm_password': confirmPassword,
-        }, options: Options(extra: <String, dynamic>{'skipAuth': true}));
+        };
+    if (nationalCardFrontId != null) {
+      payload['national_card_front_id'] = nationalCardFrontId;
+    }
+    if (nationalCardBackId != null) {
+      payload['national_card_back_id'] = nationalCardBackId;
+    }
+
+    final response = await _apiCaller.postBase<Object?>(
+      'auth/register',
+      payload,
+      options: Options(extra: <String, dynamic>{'skipAuth': true}),
+    );
 
     if (!response.success) {
       throw ApiException(
