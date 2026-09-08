@@ -320,23 +320,19 @@ class ApiAuthRepository implements AuthRepository {
     required String confirmPassword,
   }) async {
     final payload = <String, dynamic>{
-          'full_name': fullName,
-          'phone': phone,
-          'email': email,
-          'cccd': cccd,
-          'student_code': studentCode,
-          'school_id': schoolId,
-          'student_card_front_file_id': studentCardFrontFileId,
-          'student_card_back_file_id': studentCardBackFileId,
-          'password': password,
-          'confirm_password': confirmPassword,
-        };
-    if (nationalCardFrontId != null) {
-      payload['national_card_front_id'] = nationalCardFrontId;
-    }
-    if (nationalCardBackId != null) {
-      payload['national_card_back_id'] = nationalCardBackId;
-    }
+      'full_name': fullName,
+      'phone': phone,
+      'email': email,
+      'cccd': cccd,
+      'student_code': studentCode,
+      'school_id': schoolId,
+      'student_card_front_file_id': studentCardFrontFileId,
+      'student_card_back_file_id': studentCardBackFileId,
+      'password': password,
+      'confirm_password': confirmPassword,
+      'national_card_front_id': nationalCardFrontId ?? -1,
+      'national_card_back_id': nationalCardBackId ?? -1,
+    };
 
     final response = await _apiCaller.postBase<Object?>(
       'auth/register',

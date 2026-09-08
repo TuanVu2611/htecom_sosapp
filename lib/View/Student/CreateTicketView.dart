@@ -2,9 +2,12 @@
 
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hcmu_sos/Entity/IncidentTypeEntity.dart';
 import 'package:hcmu_sos/Service/PendingTicketSyncService.dart';
 import 'package:hcmu_sos/Theme/AppTypography.dart';
@@ -1018,6 +1021,159 @@ class _LocationMap extends StatefulWidget {
 }
 
 class _LocationMapState extends State<_LocationMap> {
+  static const _mapHeight = 164.0;
+
+  GoogleMapController? _mapController;
+  late LatLng _cameraTarget;
+  LatLng? _lastWidgetTarget;
+  bool _ignoreNextCameraIdle = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _cameraTarget = _targetFromController();
+    _lastWidgetTarget = _cameraTarget;
+  }
+
+  @override
+  void dispose() {
+    _mapController?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final target = _targetFromController();
+      if (target != _lastWidgetTarget) {
+        _lastWidgetTarget = target;
+        _cameraTarget = target;
+        _ignoreNextCameraIdle = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _mapController?.animateCamera(CameraUpdate.newLatLng(target));
+          }
+        });
+      }
+
+      final isLocating = widget.controller.isLocating.value;
+      return Column(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: SizedBox(
+              width: double.infinity,
+              height: _mapHeight,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Positioned.fill(
+                    child: GoogleMap(
+                      initialCameraPosition: CameraPosition(
+                        target: _cameraTarget,
+                        zoom: 16,
+                      ),
+                      mapToolbarEnabled: false,
+                      myLocationButtonEnabled: false,
+                      zoomControlsEnabled: false,
+                      scrollGesturesEnabled: true,
+                      zoomGesturesEnabled: true,
+                      gestureRecognizers:
+                          <Factory<OneSequenceGestureRecognizer>>{
+                            Factory<OneSequenceGestureRecognizer>(
+                              () => EagerGestureRecognizer(),
+                            ),
+                          },
+                      onMapCreated: (controller) => _mapController = controller,
+                      onCameraMove: (position) =>
+                          _cameraTarget = position.target,
+                      onCameraIdle: _commitMapLocation,
+                    ),
+                  ),
+                  IgnorePointer(
+                    child: Icon(
+                      Icons.location_on_rounded,
+                      color: CreateTicketView._dangerColor,
+                      size: 44,
+                      shadows: const [
+                        Shadow(
+                          color: Color(0x66000000),
+                          blurRadius: 8,
+                          offset: Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Positioned(
+                    left: 10,
+                    top: 10,
+                    child: _MapChip(text: 'ticket.map.dragHint'.tr),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: () => widget.controller.loadCurrentLocation(
+                userInitiated: true,
+              ),
+              icon: SizedBox(
+                width: 17,
+                height: 17,
+                child: isLocating
+                    ? const CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: CreateTicketView._primaryColor,
+                      )
+                    : const Icon(Icons.my_location_rounded, size: 17),
+              ),
+              label: Text(
+                isLocating
+                    ? 'ticket.location.locating'.tr
+                    : 'ticket.location.current'.tr,
+              ),
+              style: TextButton.styleFrom(
+                foregroundColor: CreateTicketView._primaryColor,
+                padding: EdgeInsets.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+            ),
+          ),
+        ],
+      );
+    });
+  }
+
+  LatLng _targetFromController() => LatLng(
+    widget.controller.latitude.value,
+    widget.controller.longitude.value,
+  );
+
+  void _commitMapLocation() {
+    if (_ignoreNextCameraIdle) {
+      _ignoreNextCameraIdle = false;
+      return;
+    }
+    widget.controller.updateLocation(
+      _cameraTarget.latitude,
+      _cameraTarget.longitude,
+    );
+  }
+}
+
+class _LegacyLocationMap extends StatefulWidget {
+  const _LegacyLocationMap({required this.controller});
+
+  final CreateTicketViewModel controller;
+
+  @override
+  State<_LegacyLocationMap> createState() => _LegacyLocationMapState();
+}
+
+class _LegacyLocationMapState extends State<_LegacyLocationMap> {
   static const int _defaultMapZoom = 16;
   static const int _minMapZoom = 3;
   static const int _maxMapZoom = 19;
@@ -1115,9 +1271,9 @@ class _LocationMapState extends State<_LocationMap> {
             child: Obx(() {
               final isLocating = widget.controller.isLocating.value;
               return TextButton.icon(
-                onPressed: isLocating
-                    ? null
-                    : widget.controller.loadCurrentLocation,
+                onPressed: () => widget.controller.loadCurrentLocation(
+                  userInitiated: true,
+                ),
                 icon: SizedBox(
                   width: 17,
                   height: 17,
@@ -1128,10 +1284,13 @@ class _LocationMapState extends State<_LocationMap> {
                         )
                       : const Icon(Icons.my_location_rounded, size: 17),
                 ),
-                label: Text('ticket.location.current'.tr),
+                label: Text(
+                  isLocating
+                      ? 'ticket.location.locating'.tr
+                      : 'ticket.location.current'.tr,
+                ),
                 style: TextButton.styleFrom(
                   foregroundColor: CreateTicketView._primaryColor,
-                  disabledForegroundColor: CreateTicketView._primaryColor,
                   padding: EdgeInsets.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),

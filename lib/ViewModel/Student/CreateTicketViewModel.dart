@@ -120,8 +120,17 @@ class CreateTicketViewModel extends GetxController
     }
   }
 
-  Future<void> loadCurrentLocation({bool showMessageOnFailure = true}) async {
+  Future<void> loadCurrentLocation({
+    bool showMessageOnFailure = true,
+    bool userInitiated = false,
+  }) async {
     if (isLocating.value) {
+      if (userInitiated) {
+        Utils.showSnackbar(
+          title: 'ticket.create.title'.tr,
+          content: 'ticket.location.locating'.tr,
+        );
+      }
       return;
     }
 
@@ -137,6 +146,7 @@ class CreateTicketViewModel extends GetxController
       final position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 12),
         ),
       );
       updateLocation(
@@ -144,6 +154,20 @@ class CreateTicketViewModel extends GetxController
         position.longitude,
         forceRefreshAddress: true,
       );
+    } on TimeoutException {
+      if (showMessageOnFailure) {
+        Utils.showSnackbar(
+          title: 'ticket.create.title'.tr,
+          content: 'location.currentUnavailable'.tr,
+        );
+      }
+    } catch (_) {
+      if (showMessageOnFailure) {
+        Utils.showSnackbar(
+          title: 'ticket.create.title'.tr,
+          content: 'location.currentUnavailable'.tr,
+        );
+      }
     } finally {
       isLocating.value = false;
     }

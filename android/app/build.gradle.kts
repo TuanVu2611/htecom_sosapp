@@ -12,12 +12,20 @@ plugins {
 val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file("key.properties")
 val keystoreExamplePropertiesFile = rootProject.file("key.properties.example")
+val mapsProperties = Properties()
+val mapsPropertiesFile = rootProject.file("maps.properties")
 
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 } else if (keystoreExamplePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystoreExamplePropertiesFile))
 }
+if (mapsPropertiesFile.exists()) {
+    mapsProperties.load(FileInputStream(mapsPropertiesFile))
+}
+val mapsApiKey = mapsProperties.getProperty("MAPS_API_KEY")
+    ?: System.getenv("MAPS_API_KEY")
+    ?: ""
 
 android {
     namespace = "com.example.hcmu_sos"
@@ -44,7 +52,8 @@ android {
         versionName = flutter.versionName
         manifestPlaceholders.putAll(
             mapOf(
-                "appAuthRedirectScheme" to "hcmusos"
+                "appAuthRedirectScheme" to "hcmusos",
+                "MAPS_API_KEY" to mapsApiKey,
             )
         )
     }

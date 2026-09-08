@@ -46,5 +46,7 @@ app.*.map.json
 
 # Android signing
 /android/key.properties
+/android/maps.properties
+/ios/Flutter/GoogleMaps.xcconfig
 /upload-keystore.jks
 *.jks

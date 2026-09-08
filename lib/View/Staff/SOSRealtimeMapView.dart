@@ -46,8 +46,6 @@ class SOSRealtimeMapView extends GetWidget<SOSRealtimeMapViewModel> {
                                     dangerColor: _dangerColor,
                                     borderColor: _borderColor,
                                     initialZoom: 17,
-                                    markerBuilder: (position) =>
-                                        _PulseMarker(position: position),
                                     onDirections: () =>
                                         _openDirections(latitude, longitude),
                                   )
