@@ -50,3 +50,19 @@ app.*.map.json
 /ios/Flutter/GoogleMaps.xcconfig
 /upload-keystore.jks
 *.jks
+
+# Flutter
+.dart_tool/
+.pub/
+build/
+
+# iOS
+ios/build/
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/ephemeral/
+
+# Xcode
+DerivedData/
+*.xcuserstate
+xcuserdata/
