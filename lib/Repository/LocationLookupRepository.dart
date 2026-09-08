@@ -2,6 +2,7 @@
 
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
+import 'package:hcmu_sos/Service/GoogleMapsApiKeyService.dart';
 
 class LocationLookupRepository {
   LocationLookupRepository({Dio? dio}) : _dio = dio ?? Dio() {
@@ -20,6 +21,68 @@ class LocationLookupRepository {
   final Dio _dio;
 
   Future<String?> reverseGeocode({
+    required double latitude,
+    required double longitude,
+  }) async {
+    final googleAddress = await _reverseGeocodeWithGoogle(
+      latitude: latitude,
+      longitude: longitude,
+    );
+    if (googleAddress != null) {
+      return googleAddress;
+    }
+
+    return _reverseGeocodeWithNominatim(
+      latitude: latitude,
+      longitude: longitude,
+    );
+  }
+
+  Future<String?> _reverseGeocodeWithGoogle({
+    required double latitude,
+    required double longitude,
+  }) async {
+    try {
+      final apiKey = await GoogleMapsApiKeyService.instance.getApiKey();
+      if (apiKey == null) {
+        return null;
+      }
+
+      final response = await _dio.get<Object?>(
+        'https://maps.googleapis.com/maps/api/geocode/json',
+        queryParameters: <String, dynamic>{
+          'latlng': '$latitude,$longitude',
+          'language': _languageCode,
+          'key': apiKey,
+        },
+      );
+
+      final data = response.data;
+      if (data is! Map) {
+        return null;
+      }
+
+      if (data['status']?.toString() != 'OK') {
+        return null;
+      }
+
+      final results = data['results'];
+      if (results is! List || results.isEmpty || results.first is! Map) {
+        return null;
+      }
+
+      final formattedAddress = results.first['formatted_address']
+          ?.toString()
+          .trim();
+      return formattedAddress == null || formattedAddress.isEmpty
+          ? null
+          : _sanitizeGoogleAddress(formattedAddress);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<String?> _reverseGeocodeWithNominatim({
     required double latitude,
     required double longitude,
   }) async {
@@ -103,6 +166,23 @@ class LocationLookupRepository {
   String _sanitizeDisplayName(String value) {
     return value
         .replaceAll(RegExp(r',\s*\d{4,6}(?=,|$)'), '')
+        .replaceAll(RegExp(r'^\s*,\s*'), '')
+        .replaceAll(RegExp(r'\s+,'), ',')
+        .replaceAll(RegExp(r'\s{2,}'), ' ')
+        .trim();
+  }
+
+  String _sanitizeGoogleAddress(String value) {
+    return value
+        // Postal codes are standalone comma-separated components, so this
+        // never removes a house number or a number included in a street name.
+        .replaceAll(RegExp(r',\s*\d{4,6}(?=,|$)'), '')
+        // The app is used in Vietnam, so repeating the country adds length
+        // without helping staff identify the incident location.
+        .replaceAll(
+          RegExp(r',\s*(?:vietnam|việt nam)\s*$', caseSensitive: false),
+          '',
+        )
         .replaceAll(RegExp(r'^\s*,\s*'), '')
         .replaceAll(RegExp(r'\s+,'), ',')
         .replaceAll(RegExp(r'\s{2,}'), ' ')
