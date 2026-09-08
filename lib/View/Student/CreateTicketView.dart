@@ -1026,7 +1026,6 @@ class _LocationMapState extends State<_LocationMap> {
   GoogleMapController? _mapController;
   late LatLng _cameraTarget;
   LatLng? _lastWidgetTarget;
-  bool _ignoreNextCameraIdle = false;
 
   @override
   void initState() {
@@ -1048,7 +1047,6 @@ class _LocationMapState extends State<_LocationMap> {
       if (target != _lastWidgetTarget) {
         _lastWidgetTarget = target;
         _cameraTarget = target;
-        _ignoreNextCameraIdle = true;
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
             _mapController?.animateCamera(CameraUpdate.newLatLng(target));
@@ -1153,14 +1151,20 @@ class _LocationMapState extends State<_LocationMap> {
   );
 
   void _commitMapLocation() {
-    if (_ignoreNextCameraIdle) {
-      _ignoreNextCameraIdle = false;
+    final currentLocation = _targetFromController();
+    if (_isSameLocation(currentLocation, _cameraTarget)) {
       return;
     }
     widget.controller.updateLocation(
       _cameraTarget.latitude,
       _cameraTarget.longitude,
     );
+  }
+
+  bool _isSameLocation(LatLng first, LatLng second) {
+    const threshold = 0.0000001;
+    return (first.latitude - second.latitude).abs() < threshold &&
+        (first.longitude - second.longitude).abs() < threshold;
   }
 }
 

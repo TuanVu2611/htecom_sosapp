@@ -39,7 +39,6 @@ class _InteractiveTileMapState extends State<InteractiveTileMap> {
 
   GoogleMapController? _mapController;
   late LatLng _cameraTarget;
-  bool _ignoreNextCameraIdle = false;
 
   @override
   void initState() {
@@ -56,7 +55,6 @@ class _InteractiveTileMapState extends State<InteractiveTileMap> {
     }
 
     _cameraTarget = _targetFromWidget();
-    _ignoreNextCameraIdle = true;
     _mapController?.animateCamera(CameraUpdate.newLatLng(_cameraTarget));
   }
 
@@ -158,11 +156,17 @@ class _InteractiveTileMapState extends State<InteractiveTileMap> {
   LatLng _targetFromWidget() => LatLng(widget.latitude, widget.longitude);
 
   void _commitLocationChange() {
-    if (_ignoreNextCameraIdle) {
-      _ignoreNextCameraIdle = false;
+    final currentLocation = _targetFromWidget();
+    if (_isSameLocation(currentLocation, _cameraTarget)) {
       return;
     }
     widget.onLocationChanged?.call(_cameraTarget);
+  }
+
+  bool _isSameLocation(LatLng first, LatLng second) {
+    const threshold = 0.0000001;
+    return (first.latitude - second.latitude).abs() < threshold &&
+        (first.longitude - second.longitude).abs() < threshold;
   }
 }
 

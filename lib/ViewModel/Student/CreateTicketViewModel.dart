@@ -610,6 +610,10 @@ class CreateTicketViewModel extends GetxController
       return;
     }
 
+    _locationLookupDebounce?.cancel();
+    _locationLookupRequestId++;
+    isResolvingLocationText.value = false;
+
     final text = locationController.text.trim();
     if (text.isEmpty) {
       _hasManualLocationOverride = false;
@@ -622,18 +626,24 @@ class CreateTicketViewModel extends GetxController
 
   void _scheduleLocationLookup({bool forceOverride = false}) {
     _locationLookupDebounce?.cancel();
+    final requestId = ++_locationLookupRequestId;
     _locationLookupDebounce = Timer(
       const Duration(milliseconds: 450),
-      () => _resolveLocationText(forceOverride: forceOverride),
+      () => _resolveLocationText(
+        requestId: requestId,
+        forceOverride: forceOverride,
+      ),
     );
   }
 
-  Future<void> _resolveLocationText({bool forceOverride = false}) async {
+  Future<void> _resolveLocationText({
+    required int requestId,
+    bool forceOverride = false,
+  }) async {
     if (_hasManualLocationOverride && !forceOverride) {
       return;
     }
 
-    final requestId = ++_locationLookupRequestId;
     isResolvingLocationText.value = true;
 
     try {
