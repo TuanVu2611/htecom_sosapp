@@ -114,7 +114,6 @@ class LoginViewModel extends GetxController {
       final session = await authRepository.loginWithMicrosoft365Token(
         microsoft365Token: microsoft365Token,
       );
-      printLongText('Microsoft 365 Token: ' + session.accessToken);
       await _saveSessionWithRecovery(session, rememberLogin: true);
       unawaited(FcmService.instance.registerCurrentToken(force: true));
       final profileUser = await _loadProfileAfterLogin() ?? session.user;
@@ -145,7 +144,7 @@ class LoginViewModel extends GetxController {
       );
       Utils.showSnackbar(
         title: 'auth.staffLoginWith'.tr,
-        content: _unexpectedLoginMessage(error),
+        content: 'auth.loginFailed'.tr,
       );
     } finally {
       isLoggingIn.value = false;
@@ -215,16 +214,6 @@ class LoginViewModel extends GetxController {
 
   Future<String> _getMicrosoft365Token() async {
     return microsoft365AuthService.signInAndGetAccessToken();
-  }
-
-  void printLongText(String text) {
-    const int chunkSize = 800;
-
-    for (int i = 0; i < text.length; i += chunkSize) {
-      int end = (i + chunkSize < text.length) ? i + chunkSize : text.length;
-
-      print(text.substring(i, end));
-    }
   }
 
   @override

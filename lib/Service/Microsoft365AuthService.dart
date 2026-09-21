@@ -1,5 +1,6 @@
 // ignore_for_file: file_names
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_appauth/flutter_appauth.dart';
 
 class Microsoft365AuthService {
@@ -34,6 +35,14 @@ class Microsoft365AuthService {
 
   bool get isConfigured => clientId.isNotEmpty;
 
+  String get redirectUri {
+    final uri = '$redirectScheme://$redirectHost';
+    // AppAuth iOS compares the callback path as well as its scheme and host.
+    // Use an explicit root path for Azure redirects on iOS.
+    // Register this exact URI in Microsoft Entra alongside the Android URI.
+    return defaultTargetPlatform == TargetPlatform.iOS ? '$uri/' : uri;
+  }
+
   Future<String> signInAndGetAccessToken() async {
     if (!isConfigured) {
       throw const Microsoft365AuthConfigurationException();
@@ -42,7 +51,7 @@ class Microsoft365AuthService {
     final response = await _appAuth.authorizeAndExchangeCode(
       AuthorizationTokenRequest(
         clientId,
-        '$redirectScheme://$redirectHost',
+        redirectUri,
         discoveryUrl:
             'https://login.microsoftonline.com/$tenantId/v2.0/.well-known/openid-configuration',
         scopes: _scopes,
