@@ -26,8 +26,8 @@ class AppTranslations extends Translations {
       'auth.register': 'Đăng ký',
       'auth.forgotPasswordTitle': 'Quên mật khẩu?',
       'auth.forgotPasswordDescription':
-          'Nhập email hoặc số điện thoại của bạn để nhận mã OTP',
-      'auth.account': 'Email/ Số điện thoại',
+          'Nhập email của bạn để nhận mã OTP',
+      'auth.account': 'Email',
       'auth.inputPlaceholder': 'Nhập',
       'auth.submitRequest': 'Gửi yêu cầu',
       'auth.verifyOtp': 'Xác thực OTP',
@@ -92,8 +92,8 @@ class AppTranslations extends Translations {
       'auth.validation.confirmPasswordRequired': 'Vui lòng nhập lại mật khẩu',
       'auth.validation.confirmPasswordMismatch': 'Mật khẩu nhập lại không khớp',
       'auth.validation.accountRequired':
-          'Vui lòng nhập email hoặc số điện thoại',
-      'auth.validation.accountInvalid': 'Email hoặc số điện thoại không hợp lệ',
+          'Vui lòng nhập email',
+      'auth.validation.accountInvalid': 'Email không hợp lệ',
       'auth.validation.otpInvalid': 'Mã OTP cần gồm 6 chữ số',
       'nav.home': 'Trang chủ',
       'nav.history': 'Lịch sử',
@@ -418,8 +418,8 @@ class AppTranslations extends Translations {
       'auth.register': 'Register',
       'auth.forgotPasswordTitle': 'Forgot password?',
       'auth.forgotPasswordDescription':
-          'Enter your email or phone number to receive an OTP',
-      'auth.account': 'Email / Phone number',
+          'Enter your email to receive an OTP',
+      'auth.account': 'Email',
       'auth.inputPlaceholder': 'Enter',
       'auth.submitRequest': 'Submit request',
       'auth.verifyOtp': 'Verify OTP',
@@ -489,8 +489,8 @@ class AppTranslations extends Translations {
       'auth.validation.confirmPasswordRequired': 'Please confirm your password',
       'auth.validation.confirmPasswordMismatch': 'Passwords do not match',
       'auth.validation.accountRequired':
-          'Please enter your email or phone number',
-      'auth.validation.accountInvalid': 'Email or phone number is invalid',
+          'Please enter your email',
+      'auth.validation.accountInvalid': 'Invalid email address',
       'auth.validation.otpInvalid': 'OTP must be 6 digits',
       'nav.home': 'Home',
       'nav.history': 'History',

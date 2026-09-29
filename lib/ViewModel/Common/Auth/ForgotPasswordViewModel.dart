@@ -166,9 +166,7 @@ class ForgotPasswordViewModel extends GetxController {
       return 'auth.validation.accountRequired';
     }
 
-    final isEmail = GetUtils.isEmail(account);
-    final isPhone = RegExp(r'^(0|\+84)[0-9]{9,10}$').hasMatch(account);
-    if (!isEmail && !isPhone) {
+    if (!GetUtils.isEmail(account)) {
       return 'auth.validation.accountInvalid';
     }
 
@@ -176,21 +174,12 @@ class ForgotPasswordViewModel extends GetxController {
   }
 
   String _maskAccount(String account) {
-    if (GetUtils.isEmail(account)) {
-      final parts = account.split('@');
-      final name = parts.first;
-      final domain = parts.last;
-      final visibleName = name.length <= 2 ? name : name.substring(0, 2);
+    final parts = account.split('@');
+    final name = parts.first;
+    final domain = parts.last;
+    final visibleName = name.length <= 2 ? name : name.substring(0, 2);
 
-      return '$visibleName****@$domain';
-    }
-
-    final normalizedPhone = account.replaceAll(RegExp(r'\s+'), '');
-    if (normalizedPhone.length <= 4) {
-      return normalizedPhone;
-    }
-
-    return '******${normalizedPhone.substring(normalizedPhone.length - 4)}';
+    return '$visibleName****@$domain';
   }
 
   String? _validatePassword() {
