@@ -128,14 +128,21 @@ class TicketDetailView extends GetWidget<TicketDetailViewModel> {
           ],
         ),
       ),
-      bottomNavigationBar: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(18, 10, 18, 14),
-          child: Obx(() {
-            final detail = controller.detail.value;
-            final canRate = detail?.status == SupportRequestStatus.done;
-            return Row(
+      bottomNavigationBar: Obx(() {
+        final detail = controller.detail.value;
+        final canRate = detail?.status == SupportRequestStatus.done;
+        final hasCompletedRating =
+            canRate && detail != null && _hasRating(detail.rating);
+
+        if (hasCompletedRating) {
+          return const SizedBox.shrink();
+        }
+
+        return SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(18, 10, 18, 14),
+            child: Row(
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
@@ -191,10 +198,10 @@ class TicketDetailView extends GetWidget<TicketDetailViewModel> {
                   ),
                 ),
               ],
-            );
-          }),
-        ),
-      ),
+            ),
+          ),
+        );
+      }),
     );
   }
 

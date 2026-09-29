@@ -28,10 +28,13 @@ class StaffTicketDetailView extends GetWidget<StaffTicketDetailViewModel> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _pageColor,
-      body: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
+      body: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        child: SafeArea(
+          bottom: false,
+          child: Column(
+            children: [
             _Header(
               controller: controller,
               onTransfer: _openTransferSheet,
@@ -120,7 +123,8 @@ class StaffTicketDetailView extends GetWidget<StaffTicketDetailViewModel> {
                 );
               }),
             ),
-          ],
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: SafeArea(

@@ -71,6 +71,19 @@ class _RegisterFormStep extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
+        Align(
+          alignment: Alignment.centerLeft,
+          child: IconButton(
+            onPressed: controller.openLogin,
+            icon: const Icon(Icons.chevron_left_rounded, size: 30),
+            color: RegisterView._primaryColor,
+            tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+            visualDensity: VisualDensity.compact,
+            padding: EdgeInsets.zero,
+            alignment: Alignment.centerLeft,
+          ),
+        ),
+        SizedBox(height: compact ? 4 : 10),
         SvgPicture.asset(
           'assets/icon/icon_logo.svg',
           width: (size.width * 0.31).clamp(118.0, 154.0),
