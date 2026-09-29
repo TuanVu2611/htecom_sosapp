@@ -1,15 +1,18 @@
 // ignore_for_file: file_names
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer' as developer;
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:hcmu_sos/Navigator/AppRoute.dart';
 import 'package:hcmu_sos/Service/ApiCaller.dart';
 import 'package:hcmu_sos/Service/AuthSessionStorage.dart';
+import 'package:hcmu_sos/Service/fcm_registration_token.dart';
 import 'package:hcmu_sos/ViewModel/Common/MenuViewModel.dart';
 import 'package:hcmu_sos/ViewModel/Common/NotifyViewModel.dart';
 import 'package:hcmu_sos/ViewModel/Staff/SOSDetailViewModel.dart';
@@ -30,7 +33,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   FcmService.logRemoteMessage(message, source: 'background');
 }
 
-class FcmService {
+class FcmService with WidgetsBindingObserver {
   FcmService._();
 
   static final FcmService instance = FcmService._();
@@ -75,13 +78,14 @@ class FcmService {
     await _ensureFirebaseInitialized();
     _initialized = true;
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+    _listenTokenRefresh();
+    _listenMessages();
+    WidgetsBinding.instance.addObserver(this);
 
     try {
       await _requestPermission();
       await _configureForegroundPresentation();
       await registerCurrentToken();
-      _listenTokenRefresh();
-      _listenMessages();
       await _handleInitialMessage();
     } catch (error, stackTrace) {
       developer.log(
@@ -90,6 +94,13 @@ class FcmService {
         error: error,
         stackTrace: stackTrace,
       );
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(registerCurrentToken());
     }
   }
 
@@ -118,7 +129,15 @@ class FcmService {
   Future<void> registerCurrentToken({bool force = false}) async {
     try {
       await _ensureFirebaseInitialized();
-      final token = await FirebaseMessaging.instance.getToken();
+      final messaging = FirebaseMessaging.instance;
+      final token = await getFcmRegistrationToken(
+        requiresApnsToken:
+            !kIsWeb &&
+            (defaultTargetPlatform == TargetPlatform.iOS ||
+                defaultTargetPlatform == TargetPlatform.macOS),
+        getApnsToken: messaging.getAPNSToken,
+        getFcmToken: messaging.getToken,
+      );
       if (token == null || token.isEmpty) {
         return;
       }
@@ -135,8 +154,7 @@ class FcmService {
 
   void _listenTokenRefresh() {
     FirebaseMessaging.instance.onTokenRefresh.listen((token) {
-      developer.log('FCM token refreshed: $token', name: 'FcmService');
-      _registerDeviceToken(token);
+      unawaited(_registerDeviceToken(token));
     });
   }
 
