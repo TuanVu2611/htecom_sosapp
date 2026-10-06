@@ -1,5 +1,7 @@
+import 'dart:async';
 // ignore_for_file: file_names
 
+import 'package:hcmu_sos/Service/NotificationUnreadService.dart';
 import 'package:get/get.dart';
 import 'package:hcmu_sos/Entity/AuthUserEntity.dart';
 import 'package:hcmu_sos/Entity/NotificationEntity.dart';
@@ -9,8 +11,6 @@ import 'package:hcmu_sos/Repository/StaffSosRepository.dart';
 import 'package:hcmu_sos/Service/ApiCaller.dart';
 import 'package:hcmu_sos/Service/AuthSessionStorage.dart';
 import 'package:hcmu_sos/Utils/Utils.dart';
-import 'package:hcmu_sos/ViewModel/Staff/StaffHomeViewModel.dart';
-import 'package:hcmu_sos/ViewModel/Student/StudentHomeViewModel.dart';
 
 class NotifyViewModel extends GetxController {
   NotifyViewModel({
@@ -29,8 +29,9 @@ class NotifyViewModel extends GetxController {
   final isMarkingRead = false.obs;
   final errorMessage = RxnString();
   final total = 0.obs;
-  final unreadCount = 0.obs;
+  final unreadCount = NotificationUnreadService.instance.count;
 
+  bool _reloadPending = false;
   int _page = 1;
   static const int _pageSize = 20;
 
@@ -44,21 +45,28 @@ class NotifyViewModel extends GetxController {
 
   Future<void> loadFirstPage() async {
     if (isLoading.value) {
+      _reloadPending = true;
       return;
     }
 
     isLoading.value = true;
     errorMessage.value = null;
+    final ticket = NotificationUnreadService.instance.beginRead();
     try {
       final result = await _notificationRepository.listNotifications(
         page: 1,
         pageSize: _pageSize,
       );
+      if (!NotificationUnreadService.instance.applyCount(
+        result.unreadCount,
+        ticket,
+      )) {
+        _reloadPending = true;
+        return;
+      }
       _page = result.page;
       total.value = result.total;
-      unreadCount.value = result.unreadCount;
       notifications.assignAll(result.items);
-      _syncHomeUnreadCount();
     } on ApiException catch (error) {
       errorMessage.value = error.message;
       Utils.showSnackbar(title: 'Thông báo', content: error.message);
@@ -68,6 +76,7 @@ class NotifyViewModel extends GetxController {
       Utils.showSnackbar(title: 'Thông báo', content: message);
     } finally {
       isLoading.value = false;
+      _reloadIfPending();
     }
   }
 
@@ -77,16 +86,22 @@ class NotifyViewModel extends GetxController {
     }
 
     isLoadingMore.value = true;
+    final ticket = NotificationUnreadService.instance.beginRead();
     try {
       final result = await _notificationRepository.listNotifications(
         page: _page + 1,
         pageSize: _pageSize,
       );
+      if (!NotificationUnreadService.instance.applyCount(
+        result.unreadCount,
+        ticket,
+      )) {
+        _reloadPending = true;
+        return;
+      }
       _page = result.page;
       total.value = result.total;
-      unreadCount.value = result.unreadCount;
       notifications.addAll(result.items);
-      _syncHomeUnreadCount();
     } on ApiException catch (error) {
       Utils.showSnackbar(title: 'Thông báo', content: error.message);
     } catch (_) {
@@ -96,6 +111,17 @@ class NotifyViewModel extends GetxController {
       );
     } finally {
       isLoadingMore.value = false;
+      _reloadIfPending();
+    }
+  }
+
+  void _reloadIfPending() {
+    if (_reloadPending &&
+        !isClosed &&
+        !isLoading.value &&
+        !isLoadingMore.value) {
+      _reloadPending = false;
+      unawaited(loadFirstPage());
     }
   }
 
@@ -104,14 +130,13 @@ class NotifyViewModel extends GetxController {
       return;
     }
 
+    final revision = NotificationUnreadService.instance.revision;
     isMarkingRead.value = true;
     try {
       await _notificationRepository.markRead(notificationId: item.id);
       _replaceNotification(item.id, item.copyWith(isRead: true));
-      if (unreadCount.value > 0) {
-        unreadCount.value--;
-      }
-      _syncHomeUnreadCount();
+      NotificationUnreadService.instance.readCompleted(revision);
+      unawaited(NotificationUnreadService.instance.refresh());
     } on ApiException catch (error) {
       Utils.showSnackbar(title: 'Thông báo', content: error.message);
     } catch (_) {
@@ -129,14 +154,15 @@ class NotifyViewModel extends GetxController {
       return;
     }
 
+    final revision = NotificationUnreadService.instance.revision;
     isMarkingRead.value = true;
     try {
       await _notificationRepository.markRead(all: true);
       notifications.assignAll(
         notifications.map((item) => item.copyWith(isRead: true)).toList(),
       );
-      unreadCount.value = 0;
-      _syncHomeUnreadCount();
+      NotificationUnreadService.instance.readCompleted(revision, all: true);
+      unawaited(NotificationUnreadService.instance.refresh());
     } on ApiException catch (error) {
       Utils.showSnackbar(title: 'Thông báo', content: error.message);
     } catch (_) {
@@ -202,16 +228,6 @@ class NotifyViewModel extends GetxController {
     final index = notifications.indexWhere((item) => item.id == id);
     if (index >= 0) {
       notifications[index] = next;
-    }
-  }
-
-  void _syncHomeUnreadCount() {
-    final count = unreadCount.value;
-    if (Get.isRegistered<StudentHomeViewModel>()) {
-      Get.find<StudentHomeViewModel>().updateUnreadNotificationCount(count);
-    }
-    if (Get.isRegistered<StaffHomeViewModel>()) {
-      Get.find<StaffHomeViewModel>().updateUnreadNotificationCount(count);
     }
   }
 

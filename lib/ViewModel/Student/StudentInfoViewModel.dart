@@ -31,6 +31,8 @@ class StudentInfoViewModel extends GetxController {
 
   AuthUserEntity? _editingSnapshot;
 
+  bool get canEditProfile => user.value?.affiliationType == 'external';
+
   @override
   void onInit() {
     super.onInit();
@@ -38,7 +40,7 @@ class StudentInfoViewModel extends GetxController {
   }
 
   void startEditing() {
-    if (isSaving.value) {
+    if (!canEditProfile || isSaving.value) {
       return;
     }
     _editingSnapshot = user.value;
@@ -57,7 +59,7 @@ class StudentInfoViewModel extends GetxController {
   }
 
   Future<void> pickAvatar() async {
-    if (!isEditing.value) {
+    if (!canEditProfile || !isEditing.value) {
       return;
     }
 
@@ -83,7 +85,7 @@ class StudentInfoViewModel extends GetxController {
   }
 
   Future<void> saveProfile() async {
-    if (!isEditing.value || isSaving.value) {
+    if (!canEditProfile || !isEditing.value || isSaving.value) {
       return;
     }
 

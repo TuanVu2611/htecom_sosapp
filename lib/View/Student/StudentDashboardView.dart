@@ -1,5 +1,6 @@
 // ignore_for_file: file_names
 
+import 'package:hcmu_sos/Service/NotificationUnreadService.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -81,6 +82,9 @@ class _StudentDashboardViewState extends State<StudentDashboardView> {
   }
 
   void _selectTab(int nextIndex) {
+    if (nextIndex == 0 && _currentIndex != 0) {
+      NotificationUnreadService.instance.refresh();
+    }
     if (nextIndex == 1 && _currentIndex != 1) {
       if (Get.isRegistered<CreateTicketViewModel>()) {
         Get.find<CreateTicketViewModel>().resetForm();

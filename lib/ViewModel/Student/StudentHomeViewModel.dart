@@ -1,5 +1,6 @@
 // ignore_for_file: file_names
 
+import 'package:hcmu_sos/Service/NotificationUnreadService.dart';
 import 'package:get/get.dart';
 import 'package:hcmu_sos/Entity/AuthUserEntity.dart';
 import 'package:hcmu_sos/Entity/IncidentTypeEntity.dart';
@@ -35,7 +36,7 @@ class StudentHomeViewModel extends GetxController {
   final incidentTypes = <IncidentTypeEntity>[].obs;
   final summary = StudentHomeSummaryEntity.empty.obs;
   final homeUser = Rxn<AuthUserEntity>();
-  final unreadNotificationCount = 0.obs;
+  final unreadNotificationCount = NotificationUnreadService.instance.count;
   final currentPage = _firstPage.obs;
   final totalRequests = 0.obs;
   final hasMoreRequests = false.obs;
@@ -81,21 +82,12 @@ class StudentHomeViewModel extends GetxController {
     homeUser.value = AuthSessionStorage.getUser();
   }
 
-  void showUnreadNotificationBadge() {
-    if (unreadNotificationCount.value <= 0) {
-      unreadNotificationCount.value = 1;
-    }
-  }
-
-  void updateUnreadNotificationCount(int count) {
-    unreadNotificationCount.value = count < 0 ? 0 : count;
-  }
-
   Future<void> loadHome() async {
     if (isLoading.value) {
       return;
     }
 
+    NotificationUnreadService.instance.refresh();
     isLoading.value = true;
     errorMessage.value = null;
     try {
@@ -124,7 +116,6 @@ class StudentHomeViewModel extends GetxController {
       incidentTypes.assignAll(types);
       summary.value = home.summary;
       homeUser.value = home.user;
-      unreadNotificationCount.value = home.unreadNotificationCount;
     } on ApiException catch (error) {
       Utils.showSnackbar(title: 'student.home'.tr, content: error.message);
     } catch (_) {

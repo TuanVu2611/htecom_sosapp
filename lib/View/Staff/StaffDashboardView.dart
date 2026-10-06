@@ -1,5 +1,6 @@
 // ignore_for_file: file_names
 
+import 'package:hcmu_sos/Service/NotificationUnreadService.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -57,7 +58,12 @@ class _StaffDashboardViewState extends State<StaffDashboardView> {
             currentIndex: _currentIndex,
             activeColor: _activeColor,
             inactiveColor: _primaryColor,
-            onTap: (index) => setState(() => _currentIndex = index),
+            onTap: (index) {
+              if (index == 0 && _currentIndex != 0) {
+                NotificationUnreadService.instance.refresh();
+              }
+              setState(() => _currentIndex = index);
+            },
           ),
         ),
       ),

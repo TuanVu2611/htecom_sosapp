@@ -1,5 +1,6 @@
 // ignore_for_file: file_names
 
+import 'package:hcmu_sos/Service/NotificationUnreadService.dart';
 import 'package:hcmu_sos/Entity/AuthSessionEntity.dart';
 import 'package:hcmu_sos/Entity/AuthUserEntity.dart';
 import 'package:hcmu_sos/Utils/StorageManager.dart';
@@ -38,6 +39,7 @@ class AuthSessionStorage {
 
   static Future<void> saveUser(AuthUserEntity user) async {
     await StorageManager.setJson(_userKey, _userToJson(user));
+    NotificationUnreadService.instance.setAccount(user.id);
   }
 
   static Future<void> updateUserSettings({
@@ -130,6 +132,7 @@ class AuthSessionStorage {
           ? AuthUserRole.staff
           : AuthUserRole.student,
       availableRoles: _rolesFromJson(data['availableRoles']),
+      affiliationType: data['affiliationType']?.toString(),
       phone: data['phone']?.toString(),
       studentCode: data['studentCode']?.toString(),
       staffCode: data['staffCode']?.toString(),
@@ -165,6 +168,7 @@ class AuthSessionStorage {
       'displayName': user.displayName,
       'role': user.role.name,
       'availableRoles': user.availableRoles.map((role) => role.name).toList(),
+      'affiliationType': user.affiliationType,
       'phone': user.phone,
       'studentCode': user.studentCode,
       'staffCode': user.staffCode,
@@ -377,6 +381,7 @@ class AuthSessionStorage {
   }
 
   static Future<void> clearSession() async {
+    NotificationUnreadService.instance.setAccount(null);
     await StorageManager.removeSecure(_accessTokenKey);
     await StorageManager.removeSecure(_refreshTokenKey);
     await StorageManager.remove(_expiresAtKey);

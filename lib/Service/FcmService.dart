@@ -1,5 +1,6 @@
 // ignore_for_file: file_names
 
+import 'package:hcmu_sos/Service/NotificationUnreadService.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer' as developer;
@@ -101,6 +102,7 @@ class FcmService with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       unawaited(registerCurrentToken());
+      unawaited(NotificationUnreadService.instance.refresh());
     }
   }
 
@@ -201,9 +203,9 @@ class FcmService with WidgetsBindingObserver {
 
   void _listenMessages() {
     FirebaseMessaging.onMessage.listen((message) async {
+      NotificationUnreadService.instance.receivedPush();
       logRemoteMessage(message, source: 'foreground');
       await _refreshTargetsForForegroundMessage(message);
-      _showUnreadNotificationBadgeOnDashboard();
       final notification = message.notification;
       if (notification != null) {
         Get.snackbar(
@@ -274,18 +276,6 @@ class FcmService with WidgetsBindingObserver {
     if (Get.currentRoute == AppRoute.notifications &&
         Get.isRegistered<NotifyViewModel>()) {
       Get.find<NotifyViewModel>().loadFirstPage();
-    }
-  }
-
-  void _showUnreadNotificationBadgeOnDashboard() {
-    if (Get.currentRoute == AppRoute.studentDashboard &&
-        Get.isRegistered<StudentHomeViewModel>()) {
-      Get.find<StudentHomeViewModel>().showUnreadNotificationBadge();
-    }
-
-    if (Get.currentRoute == AppRoute.staffDashboard &&
-        Get.isRegistered<StaffHomeViewModel>()) {
-      Get.find<StaffHomeViewModel>().showUnreadNotificationBadge();
     }
   }
 

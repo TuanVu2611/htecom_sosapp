@@ -153,10 +153,8 @@ class _MapSection extends StatelessWidget {
             color: Colors.transparent,
             borderRadius: BorderRadius.circular(12),
             child: InkWell(
-              onTap: () => Get.toNamed(
-                AppRoute.staffSosRealtimeMap,
-                arguments: item,
-              ),
+              onTap: () =>
+                  Get.toNamed(AppRoute.staffSosRealtimeMap, arguments: item),
               borderRadius: BorderRadius.circular(12),
               child: Ink(
                 padding: const EdgeInsets.fromLTRB(10, 9, 8, 9),
@@ -681,6 +679,13 @@ class _ReportCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           _EvidenceImages(controller: controller),
+          const SizedBox(height: 6),
+          Text(
+            'sos.completionImageHint'.tr,
+            style: AppTextStyles.caption.copyWith(
+              color: SOSViewDetail._mutedColor,
+            ),
+          ),
           const SizedBox(height: 12),
           TextField(
             controller: controller.noteController,
@@ -689,7 +694,8 @@ class _ReportCard extends StatelessWidget {
             maxLength: 500,
             onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
             decoration: InputDecoration(
-              hintText: 'Ghi chú xử lý',
+              labelText: 'sos.completionNoteLabel'.tr,
+              hintText: 'sos.completionNoteHint'.tr,
               hintStyle: AppTextStyles.body.copyWith(
                 color: SOSViewDetail._mutedColor,
               ),
@@ -1613,6 +1619,7 @@ Future<void> _confirmStatusUpdate({
   required String status,
   required String label,
 }) async {
+  if (!controller.validateStatusUpdate(status)) return;
   final confirmed = await showDialog<bool>(
     context: context,
     barrierColor: Colors.black.withOpacity(0.42),

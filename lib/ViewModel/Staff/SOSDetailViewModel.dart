@@ -69,20 +69,36 @@ class SOSDetailViewModel extends GetxController {
     } catch (_) {}
   }
 
+  bool validateStatusUpdate(String status) {
+    final normalizedStatus = status.trim().toLowerCase();
+    final requiresNote =
+        normalizedStatus == 'done' || normalizedStatus == 'rejected';
+    if (requiresNote && noteController.text.trim().isEmpty) {
+      Utils.showSnackbar(
+        title: 'sos.title'.tr,
+        content: normalizedStatus == 'done'
+            ? 'sos.completionNoteRequired'.tr
+            : 'sos.cancelReasonRequired'.tr,
+      );
+      return false;
+    }
+    if (normalizedStatus == 'done' && images.isEmpty) {
+      Utils.showSnackbar(
+        title: 'sos.title'.tr,
+        content: 'sos.completionImageRequired'.tr,
+      );
+      return false;
+    }
+    return true;
+  }
+
   Future<bool> updateStatus(String status) async {
     final item = sos.value;
     if (item == null || item.id <= 0 || isUpdating.value) {
       return false;
     }
-
-    final normalizedStatus = status.trim().toLowerCase();
-    if (normalizedStatus == 'rejected' && noteController.text.trim().isEmpty) {
-      Utils.showSnackbar(
-        title: 'sos.title'.tr,
-        content: 'sos.cancelReasonRequired'.tr,
-      );
-      return false;
-    }
+    if (!validateStatusUpdate(status)) return false;
+    final note = noteController.text.trim();
 
     isUpdating.value = true;
     try {
@@ -90,7 +106,7 @@ class SOSDetailViewModel extends GetxController {
       await _sosRepository.updateSos(
         sosId: item.id,
         status: status,
-        note: noteController.text,
+        note: note,
         imageFileIds: imageFileIds.isEmpty ? null : imageFileIds,
       );
       sos.value = item.copyWith(

@@ -1,3 +1,4 @@
+import 'package:hcmu_sos/Service/NotificationUnreadService.dart';
 import 'dart:async';
 import 'dart:developer' as developer;
 
@@ -7,6 +8,7 @@ import 'package:get/get.dart';
 import 'package:hcmu_sos/Localization/AppTranslations.dart';
 import 'package:hcmu_sos/Localization/LocaleManager.dart';
 import 'package:hcmu_sos/Navigator/AppPage.dart';
+import 'package:hcmu_sos/Navigator/AppRoute.dart';
 import 'package:hcmu_sos/Service/ApiCaller.dart';
 import 'package:hcmu_sos/Service/AuthSessionService.dart';
 import 'package:hcmu_sos/Service/AuthSessionStorage.dart';
@@ -22,6 +24,9 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   _configureImagePicker();
   await StorageManager.init();
+  NotificationUnreadService.instance.setAccount(
+    AuthSessionStorage.getUser()?.id,
+  );
   ApiCaller.configure(
     baseUrl: 'https://smartcampus.ktxhcm.edu.vn/api/v1/',
     tokenProvider: AuthSessionStorage.getAccessToken,
@@ -101,6 +106,14 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: AppPage.initial,
       getPages: AppPage.pages,
+      routingCallback: (routing) {
+        if (routing?.isDialog == true || routing?.isBottomSheet == true) return;
+        if (routing?.current == routing?.previous) return;
+        if (routing?.current == AppRoute.studentDashboard ||
+            routing?.current == AppRoute.staffDashboard) {
+          unawaited(NotificationUnreadService.instance.refresh());
+        }
+      },
     );
   }
 }

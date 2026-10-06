@@ -86,6 +86,7 @@ class AuthUserEntity {
     required this.displayName,
     required this.role,
     this.availableRoles = const [],
+    this.affiliationType,
     this.phone,
     this.studentCode,
     this.staffCode,
@@ -116,6 +117,7 @@ class AuthUserEntity {
   final String displayName;
   final AuthUserRole role;
   final List<AuthUserRole> availableRoles;
+  final String? affiliationType;
   final String? phone;
   final String? studentCode;
   final String? staffCode;
@@ -146,6 +148,7 @@ class AuthUserEntity {
     String? displayName,
     AuthUserRole? role,
     List<AuthUserRole>? availableRoles,
+    String? affiliationType,
     String? phone,
     String? studentCode,
     String? staffCode,
@@ -176,6 +179,7 @@ class AuthUserEntity {
       displayName: displayName ?? this.displayName,
       role: role ?? this.role,
       availableRoles: availableRoles ?? this.availableRoles,
+      affiliationType: affiliationType ?? this.affiliationType,
       phone: phone ?? this.phone,
       studentCode: studentCode ?? this.studentCode,
       staffCode: staffCode ?? this.staffCode,

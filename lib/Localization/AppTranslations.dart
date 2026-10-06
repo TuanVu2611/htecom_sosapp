@@ -25,8 +25,7 @@ class AppTranslations extends Translations {
       'auth.noAccount': 'Bạn chưa có tài khoản? ',
       'auth.register': 'Đăng ký',
       'auth.forgotPasswordTitle': 'Quên mật khẩu?',
-      'auth.forgotPasswordDescription':
-          'Nhập email của bạn để nhận mã OTP',
+      'auth.forgotPasswordDescription': 'Nhập email của bạn để nhận mã OTP',
       'auth.account': 'Email',
       'auth.inputPlaceholder': 'Nhập',
       'auth.submitRequest': 'Gửi yêu cầu',
@@ -91,8 +90,7 @@ class AppTranslations extends Translations {
           'Mật khẩu tối thiếu 8 ký tự, bao gồm chữ và số',
       'auth.validation.confirmPasswordRequired': 'Vui lòng nhập lại mật khẩu',
       'auth.validation.confirmPasswordMismatch': 'Mật khẩu nhập lại không khớp',
-      'auth.validation.accountRequired':
-          'Vui lòng nhập email',
+      'auth.validation.accountRequired': 'Vui lòng nhập email',
       'auth.validation.accountInvalid': 'Email không hợp lệ',
       'auth.validation.otpInvalid': 'Mã OTP cần gồm 6 chữ số',
       'nav.home': 'Trang chủ',
@@ -392,6 +390,15 @@ class AppTranslations extends Translations {
       'sos.cancelReasonHint': 'Nhập lý do hủy SOS',
       'sos.cancelConfirm': 'Xác nhận hủy',
       'sos.cancelReasonRequired': 'Vui lòng nhập lý do hủy SOS.',
+      'sos.completionNoteRequired':
+          'Vui lòng nhập thông tin nghiệm thu trước khi xác nhận hoàn thành SOS.',
+      'sos.completionNoteLabel': 'Ghi chú xử lý / Thông tin nghiệm thu',
+      'sos.completionImageRequired':
+          'Vui lòng thêm ít nhất 1 ảnh nghiệm thu trước khi xác nhận hoàn thành SOS.',
+      'sos.completionImageHint':
+          'Cần ít nhất 1 ảnh nghiệm thu khi hoàn thành SOS.',
+      'sos.completionNoteHint':
+          'Nhập kết quả xử lý (bắt buộc khi hoàn thành SOS)',
       'sos.back': 'Quay lại',
       'sos.createFailed': 'Không thể gửi SOS, vui lòng thử lại',
       'sos.cancelSuccess': 'Đã hủy SOS thành công',
@@ -417,8 +424,7 @@ class AppTranslations extends Translations {
       'auth.noAccount': 'Do not have an account? ',
       'auth.register': 'Register',
       'auth.forgotPasswordTitle': 'Forgot password?',
-      'auth.forgotPasswordDescription':
-          'Enter your email to receive an OTP',
+      'auth.forgotPasswordDescription': 'Enter your email to receive an OTP',
       'auth.account': 'Email',
       'auth.inputPlaceholder': 'Enter',
       'auth.submitRequest': 'Submit request',
@@ -488,8 +494,7 @@ class AppTranslations extends Translations {
           'Password minimum 8 characters and must include both letters and numbers',
       'auth.validation.confirmPasswordRequired': 'Please confirm your password',
       'auth.validation.confirmPasswordMismatch': 'Passwords do not match',
-      'auth.validation.accountRequired':
-          'Please enter your email',
+      'auth.validation.accountRequired': 'Please enter your email',
       'auth.validation.accountInvalid': 'Invalid email address',
       'auth.validation.otpInvalid': 'OTP must be 6 digits',
       'nav.home': 'Home',
@@ -792,6 +797,15 @@ class AppTranslations extends Translations {
       'sos.cancelReasonHint': 'Enter cancellation reason',
       'sos.cancelConfirm': 'Confirm cancellation',
       'sos.cancelReasonRequired': 'Please enter a cancellation reason.',
+      'sos.completionNoteRequired':
+          'Please enter the completion report before marking the SOS as completed.',
+      'sos.completionNoteLabel': 'Progress notes / Completion report',
+      'sos.completionImageRequired':
+          'Please add at least one completion photo before marking the SOS as completed.',
+      'sos.completionImageHint':
+          'At least one completion photo is required to complete the SOS.',
+      'sos.completionNoteHint':
+          'Enter the outcome (required to complete the SOS)',
       'sos.back': 'Back',
       'sos.createFailed': 'Could not send SOS. Please try again',
       'sos.cancelSuccess': 'SOS cancelled successfully',

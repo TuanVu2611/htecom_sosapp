@@ -150,6 +150,7 @@ class AuthSessionService {
           '',
       role: _roleFromApi(user['role']),
       availableRoles: _rolesFromApi(user['available_roles']),
+      affiliationType: _optionalString(user['affiliation_type']),
       phone: _optionalString(user['phone']),
       studentCode:
           _optionalString(user['student_code']) ??

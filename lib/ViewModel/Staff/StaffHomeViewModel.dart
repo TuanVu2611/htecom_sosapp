@@ -1,5 +1,6 @@
 // ignore_for_file: file_names
 
+import 'package:hcmu_sos/Service/NotificationUnreadService.dart';
 import 'package:get/get.dart';
 import 'package:hcmu_sos/Entity/AuthUserEntity.dart';
 import 'package:hcmu_sos/Entity/StaffHomeEntity.dart';
@@ -22,7 +23,7 @@ class StaffHomeViewModel extends GetxController {
   final summary = StaffHomeSummaryEntity.empty.obs;
   final activeSos = <StaffActiveSosEntity>[].obs;
   final tasks = <SupportRequestEntity>[].obs;
-  final unreadMessageCount = 0.obs;
+  final unreadMessageCount = NotificationUnreadService.instance.count;
   final isAvailable = true.obs;
   final isUpdatingAvailability = false.obs;
 
@@ -55,21 +56,12 @@ class StaffHomeViewModel extends GetxController {
     }
   }
 
-  void showUnreadNotificationBadge() {
-    if (unreadMessageCount.value <= 0) {
-      unreadMessageCount.value = 1;
-    }
-  }
-
-  void updateUnreadNotificationCount(int count) {
-    unreadMessageCount.value = count < 0 ? 0 : count;
-  }
-
   Future<void> loadHome() async {
     if (isLoading.value) {
       return;
     }
 
+    NotificationUnreadService.instance.refresh();
     isLoading.value = true;
     errorMessage.value = null;
     try {
@@ -79,7 +71,6 @@ class StaffHomeViewModel extends GetxController {
       summary.value = home.summary;
       activeSos.assignAll(home.activeSos);
       tasks.assignAll(home.tasks);
-      unreadMessageCount.value = home.unreadMessageCount;
       isAvailable.value = _availabilityFromCurrentProfile() ?? home.isAvailable;
     } on ApiException catch (error) {
       errorMessage.value = error.message;

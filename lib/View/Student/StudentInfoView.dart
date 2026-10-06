@@ -89,18 +89,21 @@ class _Header extends StatelessWidget {
             ),
           ),
           Obx(
-            () => IconButton(
-              onPressed: controller.isSaving.value || controller.isEditing.value
-                  ? null
-                  : controller.startEditing,
-              icon: Icon(
-                controller.isEditing.value
-                    ? Icons.edit_off_outlined
-                    : Icons.edit_outlined,
-                size: 23,
-              ),
-              color: StudentInfoView._primaryColor,
-            ),
+            () => controller.canEditProfile
+                ? IconButton(
+                    onPressed:
+                        controller.isSaving.value || controller.isEditing.value
+                        ? null
+                        : controller.startEditing,
+                    icon: Icon(
+                      controller.isEditing.value
+                          ? Icons.edit_off_outlined
+                          : Icons.edit_outlined,
+                      size: 23,
+                    ),
+                    color: StudentInfoView._primaryColor,
+                  )
+                : const SizedBox.shrink(),
           ),
         ],
       ),
@@ -641,11 +644,7 @@ class _HousingInfoTile extends StatelessWidget {
               color: const Color(0xFFEFF2FF),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: Icon(
-              icon,
-              color: StudentInfoView._primaryColor,
-              size: 22,
-            ),
+            child: Icon(icon, color: StudentInfoView._primaryColor, size: 22),
           ),
           const SizedBox(width: 12),
           Expanded(
