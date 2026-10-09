@@ -2,8 +2,8 @@
 
 import 'package:hcmu_sos/Service/ApiCaller.dart';
 
-class StaffLocationRepository {
-  StaffLocationRepository({ApiCaller? apiCaller})
+class UserLocationRepository {
+  UserLocationRepository({ApiCaller? apiCaller})
     : _apiCaller = apiCaller ?? ApiCaller.getInstance();
 
   final ApiCaller _apiCaller;
@@ -24,7 +24,7 @@ class StaffLocationRepository {
 
     if (!response.success) {
       throw ApiException(
-        message: response.message ?? 'Could not update staff location.',
+        message: response.message ?? 'Could not update user location.',
         code: response.code,
         data: response.raw,
       );

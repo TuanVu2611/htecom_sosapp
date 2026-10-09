@@ -16,7 +16,7 @@ import 'package:hcmu_sos/Service/AuthSessionService.dart';
 import 'package:hcmu_sos/Service/AuthSessionStorage.dart';
 import 'package:hcmu_sos/Service/FcmService.dart';
 import 'package:hcmu_sos/Service/Microsoft365AuthService.dart';
-import 'package:hcmu_sos/Service/StaffLocationUpdateService.dart';
+import 'package:hcmu_sos/Service/UserLocationUpdateService.dart';
 import 'package:hcmu_sos/Service/StudentSosTrackingService.dart';
 import 'package:hcmu_sos/Utils/Utils.dart';
 
@@ -157,7 +157,7 @@ class LoginViewModel extends GetxController {
 
   void _openDashboard(AuthUserEntity user) {
     AppLocationRequirementService.instance.startForUser(user);
-    StaffLocationUpdateService.instance.startIfStaff(user);
+    UserLocationUpdateService.instance.startForUser(user);
     unawaited(StudentSosTrackingService.instance.startIfStudent(user));
     switch (user.role) {
       case AuthUserRole.student:

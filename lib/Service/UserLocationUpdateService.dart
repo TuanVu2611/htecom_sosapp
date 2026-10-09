@@ -5,20 +5,18 @@ import 'dart:developer' as developer;
 
 import 'package:geolocator/geolocator.dart';
 import 'package:hcmu_sos/Entity/AuthUserEntity.dart';
-import 'package:hcmu_sos/Repository/StaffLocationRepository.dart';
+import 'package:hcmu_sos/Repository/UserLocationRepository.dart';
 
-class StaffLocationUpdateService {
-  StaffLocationUpdateService._({
-    StaffLocationRepository? locationRepository,
-  }) : _locationRepository =
-           locationRepository ?? StaffLocationRepository();
+class UserLocationUpdateService {
+  UserLocationUpdateService._({UserLocationRepository? locationRepository})
+    : _locationRepository = locationRepository ?? UserLocationRepository();
 
-  static final StaffLocationUpdateService instance =
-      StaffLocationUpdateService._();
+  static final UserLocationUpdateService instance =
+      UserLocationUpdateService._();
 
   static const Duration updateInterval = Duration(minutes: 5);
 
-  final StaffLocationRepository _locationRepository;
+  final UserLocationRepository _locationRepository;
 
   Timer? _timer;
   bool _isSending = false;
@@ -26,8 +24,8 @@ class StaffLocationUpdateService {
 
   bool get isRunning => _timer != null;
 
-  void startIfStaff(AuthUserEntity user) {
-    if (user.role != AuthUserRole.staff) {
+  void startForUser(AuthUserEntity user) {
+    if (user.role != AuthUserRole.staff && user.role != AuthUserRole.student) {
       stop();
       return;
     }
@@ -72,8 +70,8 @@ class StaffLocationUpdateService {
       );
     } catch (error, stackTrace) {
       developer.log(
-        'Could not update staff location.',
-        name: 'StaffLocationUpdateService',
+        'Could not update user location.',
+        name: 'UserLocationUpdateService',
         error: error,
         stackTrace: stackTrace,
       );
