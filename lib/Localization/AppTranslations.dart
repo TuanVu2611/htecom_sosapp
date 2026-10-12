@@ -147,6 +147,11 @@ class AppTranslations extends Translations {
       'location.currentUnavailable':
           'Không thể lấy vị trí hiện tại. Vui lòng thử lại.',
       'location.dialogTitle': 'Bật vị trí để tiếp tục',
+      'location.disclosureTitle': 'Cho phép sử dụng vị trí',
+      'location.disclosureMessage':
+          'Cho phép ứng dụng sử dụng vị trí để thông báo kịp thời khi có sự cố gần bạn.',
+      'location.disclosureAccept': 'Đồng ý',
+      'location.disclosureLater': 'Để sau',
       'location.appRequireEnabled':
           'Ứng dụng cần bật định vị để hỗ trợ SOS, cập nhật vị trí và xử lý yêu cầu nhanh hơn.',
       'location.appPermissionRequired':
@@ -554,6 +559,11 @@ class AppTranslations extends Translations {
       'location.currentUnavailable':
           'Unable to get the current location. Please try again.',
       'location.dialogTitle': 'Turn on location to continue',
+      'location.disclosureTitle': 'Allow location use',
+      'location.disclosureMessage':
+          'Allow location access to receive timely alerts about incidents near you.',
+      'location.disclosureAccept': 'Agree',
+      'location.disclosureLater': 'Later',
       'location.appRequireEnabled':
           'The app needs Location Services turned on to support SOS, location updates, and faster request handling.',
       'location.appPermissionRequired':
