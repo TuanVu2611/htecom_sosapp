@@ -34,8 +34,8 @@ class ChangePassViewModel extends GetxController {
     isSubmitting.value = true;
     try {
       await authRepository.changePassword(
-        currentPassword: currentPasswordController.text.trim(),
-        newPassword: newPasswordController.text.trim(),
+        currentPassword: currentPasswordController.text,
+        newPassword: newPasswordController.text,
       );
 
       await _showPasswordChangedDialog();
@@ -74,9 +74,9 @@ class ChangePassViewModel extends GetxController {
   }
 
   String? _validatePassword() {
-    final currentPassword = currentPasswordController.text.trim();
-    final newPassword = newPasswordController.text.trim();
-    final confirmPassword = confirmPasswordController.text.trim();
+    final currentPassword = currentPasswordController.text;
+    final newPassword = newPasswordController.text;
+    final confirmPassword = confirmPasswordController.text;
 
     if (currentPassword.isEmpty) {
       return 'auth.validation.currentPasswordRequired';
@@ -90,7 +90,7 @@ class ChangePassViewModel extends GetxController {
       return 'auth.validation.passwordTooShort';
     }
 
-    if (!RegExp(r'^(?=.*[A-Za-z])(?=.*\d).+$').hasMatch(newPassword)) {
+    if (!RegExp(r'^(?=.*[A-Za-z])(?=.*\d)\S{8,20}$').hasMatch(newPassword)) {
       return 'auth.validation.passwordWeak';
     }
 

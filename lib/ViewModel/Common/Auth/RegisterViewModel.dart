@@ -71,6 +71,7 @@ class RegisterViewModel extends GetxController {
   final obscureConfirmPassword = true.obs;
   final isLoadingInstitutions = false.obs;
   final isRegistering = false.obs;
+  final hasAcceptedPrivacyTerms = false.obs;
   final isVerifyingOtp = false.obs;
   final step = RegisterStep.form.obs;
   final maskedReceiver = ''.obs;
@@ -203,8 +204,18 @@ class RegisterViewModel extends GetxController {
     clearFieldError(RegisterField.studentCardBack);
   }
 
+  void openPrivacyTerms() {
+    Get.toNamed(
+      AppRoute.htmlDocument,
+      arguments: <String, String>{
+        'title': 'auth.privacyTerms'.tr,
+        'endpoint': 'legal/get_terms',
+      },
+    );
+  }
+
   Future<void> register() async {
-    if (isRegistering.value) {
+    if (isRegistering.value || !hasAcceptedPrivacyTerms.value) {
       return;
     }
 
@@ -457,12 +468,8 @@ class RegisterViewModel extends GetxController {
 
     if (password.isEmpty) {
       errors[RegisterField.password] = 'auth.validation.passwordRequired';
-    }
-    // else if (password.length < 8) {
-    //   errors[RegisterField.password] = 'auth.validation.passwordTooShort';
-    // }
-    else if (!RegExp(
-      r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,20}$',
+    } else if (!RegExp(
+      r'^(?=.*[A-Za-z])(?=.*\d)\S{8,20}$',
     ).hasMatch(password)) {
       errors[RegisterField.password] = 'auth.validation.passwordWeak';
     }

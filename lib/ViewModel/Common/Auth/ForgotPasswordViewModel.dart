@@ -194,7 +194,7 @@ class ForgotPasswordViewModel extends GetxController {
       return 'auth.validation.passwordTooShort';
     }
 
-    if (!RegExp(r'^(?=.*[A-Za-z])(?=.*\d).+$').hasMatch(password)) {
+    if (!RegExp(r'^(?=.*[A-Za-z])(?=.*\d)\S{8,20}$').hasMatch(password)) {
       return 'auth.validation.passwordWeak';
     }
 

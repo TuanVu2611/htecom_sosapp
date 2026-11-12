@@ -250,6 +250,8 @@ class NotifyViewModel extends GetxController {
         }
         return role == AuthUserRole.staff
             ? _NotificationRoute.staffSosDetail
+            : role == AuthUserRole.student
+            ? _NotificationRoute.ticketDetail
             : null;
       case 'chat':
         if (item.refId == null || item.refId! <= 0) {

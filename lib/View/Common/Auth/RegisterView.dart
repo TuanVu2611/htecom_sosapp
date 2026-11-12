@@ -288,11 +288,57 @@ class _RegisterFormStep extends StatelessWidget {
         ),
         const SizedBox(height: 9),
         Obx(
+          () => Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Checkbox(
+                value: controller.hasAcceptedPrivacyTerms.value,
+                activeColor: RegisterView._primaryColor,
+                semanticLabel: '${'auth.agreeTo'.tr} ${'auth.privacyTerms'.tr}',
+                onChanged: controller.isRegistering.value
+                    ? null
+                    : (value) => controller.hasAcceptedPrivacyTerms.value =
+                          value ?? false,
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 4,
+                    children: [
+                      Text(
+                        'auth.agreeTo'.tr,
+                        style: AppTextStyles.body.copyWith(
+                          color: RegisterView._mutedTextColor,
+                        ),
+                      ),
+                      InkWell(
+                        onTap: controller.openPrivacyTerms,
+                        child: Text(
+                          'auth.privacyTerms'.tr,
+                          style: AppTextStyles.bodyStrong.copyWith(
+                            color: RegisterView._primaryColor,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 9),
+        Obx(
           () => SizedBox(
             width: double.infinity,
             height: 50,
             child: FilledButton(
-              onPressed: controller.isRegistering.value
+              onPressed:
+                  controller.isRegistering.value ||
+                      !controller.hasAcceptedPrivacyTerms.value
                   ? null
                   : controller.register,
               style: FilledButton.styleFrom(

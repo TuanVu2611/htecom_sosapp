@@ -24,6 +24,8 @@ class AppTranslations extends Translations {
           'Không lấy được token Microsoft 365, vui lòng thử lại',
       'auth.noAccount': 'Bạn chưa có tài khoản? ',
       'auth.register': 'Đăng ký',
+      'auth.agreeTo': 'Tôi đồng ý với',
+      'auth.privacyTerms': 'điều khoản bảo mật',
       'auth.forgotPasswordTitle': 'Quên mật khẩu?',
       'auth.forgotPasswordDescription': 'Nhập email của bạn để nhận mã OTP',
       'auth.account': 'Email',
@@ -87,7 +89,7 @@ class AppTranslations extends Translations {
       'auth.validation.passwordRequired': 'Vui lòng nhập mật khẩu',
       'auth.validation.passwordTooShort': 'Mật khẩu cần tối thiểu 8 ký tự',
       'auth.validation.passwordWeak':
-          'Mật khẩu tối thiếu 8 ký tự, bao gồm chữ và số',
+          'Mật khẩu cần 8–20 ký tự, gồm chữ và số, có thể chứa ký tự đặc biệt nhưng không có khoảng trắng.',
       'auth.validation.confirmPasswordRequired': 'Vui lòng nhập lại mật khẩu',
       'auth.validation.confirmPasswordMismatch': 'Mật khẩu nhập lại không khớp',
       'auth.validation.accountRequired': 'Vui lòng nhập email',
@@ -428,6 +430,8 @@ class AppTranslations extends Translations {
           'Could not get a Microsoft 365 token. Please try again',
       'auth.noAccount': 'Do not have an account? ',
       'auth.register': 'Register',
+      'auth.agreeTo': 'I agree to the',
+      'auth.privacyTerms': 'privacy terms',
       'auth.forgotPasswordTitle': 'Forgot password?',
       'auth.forgotPasswordDescription': 'Enter your email to receive an OTP',
       'auth.account': 'Email',
@@ -496,7 +500,7 @@ class AppTranslations extends Translations {
       'auth.validation.passwordTooShort':
           'Password must be at least 8 characters',
       'auth.validation.passwordWeak':
-          'Password minimum 8 characters and must include both letters and numbers',
+          'Password must be 8–20 characters with letters and numbers. Special characters are allowed, but whitespace is not.',
       'auth.validation.confirmPasswordRequired': 'Please confirm your password',
       'auth.validation.confirmPasswordMismatch': 'Passwords do not match',
       'auth.validation.accountRequired': 'Please enter your email',

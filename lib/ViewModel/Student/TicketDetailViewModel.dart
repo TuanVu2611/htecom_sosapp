@@ -4,13 +4,19 @@ import 'package:get/get.dart';
 import 'package:hcmu_sos/Entity/SupportRequestEntity.dart';
 import 'package:hcmu_sos/Repository/SupportRequestRepository.dart';
 import 'package:hcmu_sos/Service/ApiCaller.dart';
+import 'package:hcmu_sos/Service/AuthSessionStorage.dart';
 import 'package:hcmu_sos/Utils/Utils.dart';
 
 class TicketDetailViewModel extends GetxController {
-  TicketDetailViewModel({SupportRequestRepository? requestRepository})
-    : _requestRepository = requestRepository ?? SupportRequestRepository();
+  TicketDetailViewModel({
+    SupportRequestRepository? requestRepository,
+    String? Function()? currentUserId,
+  }) : _requestRepository = requestRepository ?? SupportRequestRepository(),
+       _currentUserId =
+           currentUserId ?? (() => AuthSessionStorage.getUser()?.id);
 
   final SupportRequestRepository _requestRepository;
+  final String? Function() _currentUserId;
 
   final isLoading = false.obs;
   final isSubmittingRating = false.obs;
@@ -19,6 +25,26 @@ class TicketDetailViewModel extends GetxController {
 
   int? requestId;
   bool _openRatingRequested = false;
+
+  bool get isOwnSos {
+    final request = detail.value;
+    if (request == null || !request.isSos) return false;
+    final studentId = request.student?.id;
+    final userId = int.tryParse(_currentUserId()?.trim() ?? '');
+    return studentId != null && studentId > 0 && userId == studentId;
+  }
+
+  // Missing ownership information must not grant owner-only SOS actions.
+  bool get canAccessOwnerFeatures {
+    final request = detail.value;
+    return request != null && (!request.isSos || isOwnSos);
+  }
+
+  bool get canRate =>
+      canAccessOwnerFeatures &&
+      detail.value?.status == SupportRequestStatus.done &&
+      !((detail.value?.rating?.rating ?? 0) > 0 ||
+          (detail.value?.rating?.comment?.trim().isNotEmpty ?? false));
 
   @override
   void onInit() {
@@ -63,7 +89,7 @@ class TicketDetailViewModel extends GetxController {
 
   Future<bool> submitRating({required int rating, String? comment}) async {
     final id = requestId;
-    if (id == null || id <= 0 || isSubmittingRating.value) {
+    if (id == null || id <= 0 || isSubmittingRating.value || !canRate) {
       return false;
     }
     if (rating < 1 || rating > 5) {
@@ -109,7 +135,7 @@ class TicketDetailViewModel extends GetxController {
       return false;
     }
     _openRatingRequested = false;
-    return true;
+    return canRate;
   }
 
   bool _readOpenRatingRequested() {

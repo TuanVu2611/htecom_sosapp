@@ -63,11 +63,13 @@ class TicketDetailView extends GetWidget<TicketDetailViewModel> {
                     _hasText(detail.assignedStaff!.name);
                 final timeline = _displayTimeline(detail);
                 final hasTimeline = timeline.isNotEmpty;
-                final hasAcceptance = _hasAcceptance(detail.acceptance);
-                final hasRating = _hasRating(detail.rating);
-                if (!hasRating &&
-                    detail.status == SupportRequestStatus.done &&
-                    controller.takeOpenRatingRequest()) {
+                final canAccessOwnerFeatures =
+                    controller.canAccessOwnerFeatures;
+                final hasAcceptance =
+                    canAccessOwnerFeatures && _hasAcceptance(detail.acceptance);
+                final hasRating =
+                    canAccessOwnerFeatures && _hasRating(detail.rating);
+                if (controller.canRate && controller.takeOpenRatingRequest()) {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     if (context.mounted) {
                       _openRatingDialog(context, detail);
@@ -98,6 +100,7 @@ class TicketDetailView extends GetWidget<TicketDetailViewModel> {
                           _StaffCard(
                             staff: detail.assignedStaff!,
                             showZaloAction: detail.isSos,
+                            showContactActions: canAccessOwnerFeatures,
                           ),
                         ],
                         if (hasTimeline) ...[
@@ -118,7 +121,7 @@ class TicketDetailView extends GetWidget<TicketDetailViewModel> {
                           const SizedBox(height: 14),
                           _RatingSection(rating: detail.rating!),
                         ],
-                        const SizedBox(height: 84),
+                        SizedBox(height: canAccessOwnerFeatures ? 84 : 20),
                       ],
                     ),
                   ),
@@ -130,9 +133,12 @@ class TicketDetailView extends GetWidget<TicketDetailViewModel> {
       ),
       bottomNavigationBar: Obx(() {
         final detail = controller.detail.value;
-        final canRate = detail?.status == SupportRequestStatus.done;
+        if (!controller.canAccessOwnerFeatures) return const SizedBox.shrink();
+        final canRate = controller.canRate;
         final hasCompletedRating =
-            canRate && detail != null && _hasRating(detail.rating);
+            detail?.status == SupportRequestStatus.done &&
+            detail != null &&
+            _hasRating(detail.rating);
 
         if (hasCompletedRating) {
           return const SizedBox.shrink();
@@ -169,15 +175,18 @@ class TicketDetailView extends GetWidget<TicketDetailViewModel> {
                   child: FilledButton.icon(
                     onPressed: detail == null
                         ? null
-                        : () => Get.toNamed(
-                            AppRoute.commentTicket,
-                            arguments: <String, dynamic>{
-                              'thread_id': detail.id,
-                              'incident_code': detail.code,
-                              'incident_title': detail.title,
-                              'status': _statusCode(detail.status),
-                            },
-                          ),
+                        : () {
+                            if (!controller.canAccessOwnerFeatures) return;
+                            Get.toNamed(
+                              AppRoute.commentTicket,
+                              arguments: <String, dynamic>{
+                                'thread_id': detail.id,
+                                'incident_code': detail.code,
+                                'incident_title': detail.title,
+                                'status': _statusCode(detail.status),
+                              },
+                            );
+                          },
                     icon: const Icon(
                       Icons.chat_bubble_outline_rounded,
                       size: 19,
@@ -209,6 +218,7 @@ class TicketDetailView extends GetWidget<TicketDetailViewModel> {
     BuildContext context,
     SupportRequestDetailEntity detail,
   ) async {
+    if (!controller.canRate || controller.detail.value?.id != detail.id) return;
     await showDialog<void>(
       context: context,
       barrierColor: Colors.black.withValues(alpha: 0.42),
@@ -596,10 +606,15 @@ class _MetaTile extends StatelessWidget {
 }
 
 class _StaffCard extends StatelessWidget {
-  const _StaffCard({required this.staff, required this.showZaloAction});
+  const _StaffCard({
+    required this.staff,
+    required this.showZaloAction,
+    required this.showContactActions,
+  });
 
   final AssignedStaffEntity staff;
   final bool showZaloAction;
+  final bool showContactActions;
 
   @override
   Widget build(BuildContext context) {
@@ -640,7 +655,8 @@ class _StaffCard extends StatelessWidget {
               ],
             ),
           ),
-          _ContactButtons(phone: staff.phone, showZaloAction: showZaloAction),
+          if (showContactActions)
+            _ContactButtons(phone: staff.phone, showZaloAction: showZaloAction),
         ],
       ),
     );
