@@ -281,13 +281,6 @@ class StaffTicketDetailView extends GetWidget<StaffTicketDetailViewModel> {
     BuildContext context,
     SupportRequestDetailEntity detail,
   ) async {
-    final options =
-        controller.transferOptions.value ??
-        await controller.loadTransferOptions();
-    if (options == null || !context.mounted) {
-      return;
-    }
-
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -295,7 +288,6 @@ class StaffTicketDetailView extends GetWidget<StaffTicketDetailViewModel> {
       backgroundColor: Colors.transparent,
       builder: (_) => _RejectTaskSheet(
         detail: detail,
-        reasons: options.reasons,
         controller: controller,
         detailContext: context,
       ),
@@ -526,13 +518,11 @@ class _TransferTaskSheetState extends State<_TransferTaskSheet> {
 class _RejectTaskSheet extends StatefulWidget {
   const _RejectTaskSheet({
     required this.detail,
-    required this.reasons,
     required this.controller,
     required this.detailContext,
   });
 
   final SupportRequestDetailEntity detail;
-  final List<String> reasons;
   final StaffTicketDetailViewModel controller;
   final BuildContext detailContext;
 
@@ -542,7 +532,6 @@ class _RejectTaskSheet extends StatefulWidget {
 
 class _RejectTaskSheetState extends State<_RejectTaskSheet> {
   final _reasonController = TextEditingController();
-  String? _selectedReason;
 
   @override
   void dispose() {
@@ -581,40 +570,6 @@ class _RejectTaskSheetState extends State<_RejectTaskSheet> {
           const SizedBox(height: 14),
           const Divider(height: 1, color: StaffTicketDetailView._borderColor),
           const SizedBox(height: 14),
-          if (widget.reasons.isNotEmpty)
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: widget.reasons
-                  .map(
-                    (reason) => ChoiceChip(
-                      selected: _selectedReason == reason,
-                      label: Text(reason),
-                      onSelected: (_) {
-                        setState(() {
-                          _selectedReason = reason;
-                          _reasonController.text = reason;
-                        });
-                      },
-                      selectedColor: StaffTicketDetailView._primaryColor,
-                      labelStyle: AppTextStyles.caption.copyWith(
-                        color: _selectedReason == reason
-                            ? Colors.white
-                            : StaffTicketDetailView._primaryColor,
-                        fontSize: AppFontSizes.base,
-                        fontWeight: FontWeight.w900,
-                      ),
-                      side: const BorderSide(
-                        color: StaffTicketDetailView._borderColor,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                    ),
-                  )
-                  .toList(),
-            ),
-          const SizedBox(height: 16),
           _RequiredLabel(text: 'staff.ticket.rejectReason'.tr),
           const SizedBox(height: 8),
           TextField(

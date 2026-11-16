@@ -36,8 +36,7 @@ class TicketImageAttachment {
   final String mimeType;
 }
 
-class CreateTicketViewModel extends GetxController
-    with WidgetsBindingObserver {
+class CreateTicketViewModel extends GetxController with WidgetsBindingObserver {
   CreateTicketViewModel({
     CatalogRepository? catalogRepository,
     LocationLookupRepository? locationLookupRepository,
@@ -101,10 +100,14 @@ class CreateTicketViewModel extends GetxController
       final items = await _catalogRepository.getIncidentTypes(
         forceRefresh: forceRefresh,
       );
-      incidentTypes.assignAll(items);
-      if (selectedIncidentType.value == null && items.isNotEmpty) {
-        selectedIncidentType.value = items.first;
-      }
+      final availableTypes = items
+          .where((item) => item.name.trim().toLowerCase() != 'sos')
+          .toList();
+      incidentTypes.assignAll(availableTypes);
+      final selectedId = selectedIncidentType.value?.id;
+      selectedIncidentType.value =
+          availableTypes.firstWhereOrNull((item) => item.id == selectedId) ??
+          (availableTypes.isEmpty ? null : availableTypes.first);
     } on ApiException catch (error) {
       Utils.showSnackbar(
         title: 'ticket.create.title'.tr,
@@ -430,9 +433,7 @@ class CreateTicketViewModel extends GetxController
     return null;
   }
 
-  Future<bool> _ensureLocationAccess({
-    bool showMessageOnFailure = true,
-  }) async {
+  Future<bool> _ensureLocationAccess({bool showMessageOnFailure = true}) async {
     final serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       if (showMessageOnFailure) {
