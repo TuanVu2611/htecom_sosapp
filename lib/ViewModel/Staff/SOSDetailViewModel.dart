@@ -5,6 +5,8 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hcmu_sos/Entity/StaffHomeEntity.dart';
+import 'package:hcmu_sos/Entity/AuthUserEntity.dart';
+import 'package:hcmu_sos/Service/AuthSessionStorage.dart';
 import 'package:hcmu_sos/Repository/StaffSosRepository.dart';
 import 'package:hcmu_sos/Repository/SupportRequestRepository.dart';
 import 'package:hcmu_sos/Service/ApiCaller.dart';
@@ -30,11 +32,15 @@ class SOSDetailViewModel extends GetxController {
   SOSDetailViewModel({
     StaffSosRepository? sosRepository,
     SupportRequestRepository? requestRepository,
+    AuthUserEntity? Function()? currentUser,
   }) : _sosRepository = sosRepository ?? StaffSosRepository(),
-       _requestRepository = requestRepository ?? SupportRequestRepository();
+       _requestRepository = requestRepository ?? SupportRequestRepository(),
+       _currentUser = currentUser ?? AuthSessionStorage.getUser;
 
   final StaffSosRepository _sosRepository;
   final SupportRequestRepository _requestRepository;
+  final AuthUserEntity? Function() _currentUser;
+  final _awaitingAssignmentRefresh = false.obs;
   final ImagePicker _imagePicker = ImagePicker();
   final noteController = TextEditingController();
 
@@ -42,6 +48,50 @@ class SOSDetailViewModel extends GetxController {
   final isUpdating = false.obs;
   final isUpdatingChecklist = false.obs;
   final images = <SosProgressImageDraft>[].obs;
+
+  bool get _hasStaffSession {
+    final user = _currentUser();
+    return user?.role == AuthUserRole.staff &&
+        (int.tryParse(user?.id ?? '') ?? 0) > 0;
+  }
+
+  bool get _isActive {
+    final item = sos.value;
+    return !_awaitingAssignmentRefresh.value &&
+        item != null &&
+        item.id > 0 &&
+        item.isActive &&
+        !{'done', 'rejected', 'cancelled', 'canceled'}.contains(item.status);
+  }
+
+  bool get canEdit {
+    final assignedId = sos.value?.assignedStaff?.id;
+    return _hasStaffSession &&
+        _isActive &&
+        assignedId != null &&
+        assignedId > 0 &&
+        assignedId == int.tryParse(_currentUser()!.id);
+  }
+
+  bool canUpdateStatus(String status) {
+    if (!_hasStaffSession || !_isActive) return false;
+    if (sos.value!.assignedStaff == null) return status == 'in_progress';
+    return canEdit &&
+        status != sos.value!.status &&
+        {
+          'pending',
+          'in_progress',
+          'reopened',
+          'done',
+          'rejected',
+        }.contains(status);
+  }
+
+  Future<void> _reloadAssignment(int id) async {
+    final latest = await _sosRepository.getSosDetail(id);
+    sos.value = latest;
+    _awaitingAssignmentRefresh.value = false;
+  }
 
   bool get hasCoordinates =>
       sos.value?.latitude != null && sos.value?.longitude != null;
@@ -65,11 +115,12 @@ class SOSDetailViewModel extends GetxController {
     }
 
     try {
-      sos.value = await _sosRepository.getSosDetail(current.id);
+      await _reloadAssignment(current.id);
     } catch (_) {}
   }
 
   bool validateStatusUpdate(String status) {
+    if (!canUpdateStatus(status)) return false;
     final normalizedStatus = status.trim().toLowerCase();
     final requiresNote =
         normalizedStatus == 'done' || normalizedStatus == 'rejected';
@@ -94,7 +145,10 @@ class SOSDetailViewModel extends GetxController {
 
   Future<bool> updateStatus(String status) async {
     final item = sos.value;
-    if (item == null || item.id <= 0 || isUpdating.value) {
+    if (item == null ||
+        item.id <= 0 ||
+        isUpdating.value ||
+        isUpdatingChecklist.value) {
       return false;
     }
     if (!validateStatusUpdate(status)) return false;
@@ -102,19 +156,32 @@ class SOSDetailViewModel extends GetxController {
 
     isUpdating.value = true;
     try {
-      final imageFileIds = await _uploadImages();
+      await _reloadAssignment(item.id);
+      if (!validateStatusUpdate(status)) return false;
+      final imageFileIds = canEdit ? await _uploadImages() : <int>[];
+      if (imageFileIds.isNotEmpty) {
+        await _reloadAssignment(item.id);
+        if (!canUpdateStatus(status)) return false;
+      }
       await _sosRepository.updateSos(
         sosId: item.id,
         status: status,
         note: note,
         imageFileIds: imageFileIds.isEmpty ? null : imageFileIds,
       );
-      sos.value = item.copyWith(
+      final latest = sos.value!;
+      _awaitingAssignmentRefresh.value = true;
+      sos.value = latest.copyWith(
         status: status,
-        timeline: _reachedTimeline(item.timeline, status),
+        timeline: _reachedTimeline(latest.timeline, status),
       );
       images.clear();
       noteController.clear();
+      try {
+        await _reloadAssignment(item.id);
+      } catch (_) {
+        // Keep actions blocked until the updated assignment can be loaded.
+      }
       Utils.showSnackbar(
         title: 'SOS khẩn cấp',
         content: 'Cập nhật tiến trình thành công.',
@@ -138,7 +205,11 @@ class SOSDetailViewModel extends GetxController {
     required List<Map<String, dynamic>> checklist,
   }) async {
     final item = sos.value;
-    if (item == null || item.id <= 0 || isUpdatingChecklist.value) {
+    if (item == null ||
+        item.id <= 0 ||
+        isUpdatingChecklist.value ||
+        isUpdating.value ||
+        !canEdit) {
       return false;
     }
 
@@ -157,6 +228,8 @@ class SOSDetailViewModel extends GetxController {
 
     isUpdatingChecklist.value = true;
     try {
+      await _reloadAssignment(item.id);
+      if (!canEdit) return false;
       await _requestRepository.updateStaffRequestChecklist(
         requestId: item.id,
         checklist: normalizedChecklist,
@@ -185,6 +258,7 @@ class SOSDetailViewModel extends GetxController {
   }
 
   Future<void> pickImages() async {
+    if (!canEdit || isUpdating.value || isUpdatingChecklist.value) return;
     final remainingSlots = maxSosProgressImages - images.length;
     if (remainingSlots <= 0) {
       return;
@@ -227,6 +301,7 @@ class SOSDetailViewModel extends GetxController {
           ),
         );
       }
+      if (!canEdit || isUpdating.value || isUpdatingChecklist.value) return;
       images.addAll(drafts);
       if (hasOversizedImage) {
         Utils.showSnackbar(
@@ -240,6 +315,7 @@ class SOSDetailViewModel extends GetxController {
   }
 
   void removeImage(SosProgressImageDraft image) {
+    if (!canEdit || isUpdating.value || isUpdatingChecklist.value) return;
     images.remove(image);
   }
 

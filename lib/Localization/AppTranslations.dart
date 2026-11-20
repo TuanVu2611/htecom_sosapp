@@ -151,7 +151,11 @@ class AppTranslations extends Translations {
       'location.dialogTitle': 'Bật vị trí để tiếp tục',
       'location.disclosureTitle': 'Cho phép sử dụng vị trí',
       'location.disclosureMessage':
-          'Cho phép ứng dụng sử dụng vị trí để thông báo kịp thời khi có sự cố gần bạn.',
+          'Ứng dụng thu thập và gửi vị trí của bạn lên hệ thống để thông báo sự cố gần bạn và xác định địa điểm khi gửi SOS hoặc yêu cầu hỗ trợ.',
+      'location.sosDisclosureMessage':
+          'Khi SOS đang hoạt động, ứng dụng thu thập và gửi vị trí của bạn lên hệ thống để cán bộ hỗ trợ, kể cả khi bạn không sử dụng ứng dụng. Việc theo dõi dừng khi SOS kết thúc hoặc bị hủy.',
+      'location.staffDisclosureMessage':
+          'Ứng dụng thu thập và gửi vị trí của cán bộ lên hệ thống để hỗ trợ xử lý sự cố và yêu cầu hỗ trợ. Vị trí được cập nhật định kỳ, kể cả khi bạn không sử dụng ứng dụng và ứng dụng vẫn chạy nền.',
       'location.disclosureAccept': 'Đồng ý',
       'location.disclosureLater': 'Để sau',
       'location.appRequireEnabled':
@@ -565,7 +569,11 @@ class AppTranslations extends Translations {
       'location.dialogTitle': 'Turn on location to continue',
       'location.disclosureTitle': 'Allow location use',
       'location.disclosureMessage':
-          'Allow location access to receive timely alerts about incidents near you.',
+          'The app collects and sends your location to our server to notify you about nearby incidents and identify the location of your SOS or support requests.',
+      'location.sosDisclosureMessage':
+          'During an active SOS, the app collects and sends your location to our server so staff can assist you, even when you are not using the app. Tracking stops when the SOS ends or is cancelled.',
+      'location.staffDisclosureMessage':
+          'The app collects and sends staff location to our server to support incident and support request handling. Location is updated periodically, including when you are not using the app while it continues running in the background.',
       'location.disclosureAccept': 'Agree',
       'location.disclosureLater': 'Later',
       'location.appRequireEnabled':

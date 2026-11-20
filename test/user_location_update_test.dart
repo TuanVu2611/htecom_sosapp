@@ -81,8 +81,14 @@ void main() {
 
   setUp(() async {
     await StorageManager.clear();
-    await StorageManager.setBool('location_update_consent_v1_student', true);
-    await StorageManager.setBool('location_update_consent_v1_staff', true);
+    await StorageManager.setBool(
+      'location_consent_v2_student_student_general',
+      true,
+    );
+    await StorageManager.setBool(
+      'location_consent_v2_staff_staff_general',
+      true,
+    );
     platform = GrantedLocationPlatform();
     GeolocatorPlatform.instance = platform;
     repository = RecordingLocationRepository();

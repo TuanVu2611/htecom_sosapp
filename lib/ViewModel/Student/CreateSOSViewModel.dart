@@ -9,15 +9,14 @@ import 'package:get/get.dart';
 import 'package:hcmu_sos/Repository/SosTrackingRepository.dart';
 import 'package:hcmu_sos/Service/ApiCaller.dart';
 import 'package:hcmu_sos/Service/StudentSosTrackingService.dart';
-import 'package:hcmu_sos/Theme/AppTypography.dart';
+import 'package:hcmu_sos/Service/AppLocationRequirementService.dart';
 import 'package:hcmu_sos/Utils/Utils.dart';
 
 enum CreateSOSState { ready, holding, sent }
 
 class CreateSOSViewModel extends GetxController with WidgetsBindingObserver {
   CreateSOSViewModel({SosTrackingRepository? sosTrackingRepository})
-    : _sosTrackingRepository =
-          sosTrackingRepository ?? SosTrackingRepository();
+    : _sosTrackingRepository = sosTrackingRepository ?? SosTrackingRepository();
 
   static const int holdSeconds = 5;
 
@@ -108,6 +107,8 @@ class CreateSOSViewModel extends GetxController with WidgetsBindingObserver {
     if (isSubmitting.value) return;
 
     isSubmitting.value = true;
+    final access = AppLocationRequirementService.instance;
+    final session = access.sessionRevision;
 
     try {
       final hasLocationAccess = await _ensureLocationAccess();
@@ -117,6 +118,11 @@ class CreateSOSViewModel extends GetxController with WidgetsBindingObserver {
       }
 
       final position = await _currentPositionOrNull();
+      if (isClosed ||
+          session != access.sessionRevision ||
+          !access.hasConsent()) {
+        return;
+      }
       if (position == null) {
         throw ApiException(message: 'location.currentUnavailable'.tr);
       }
@@ -124,8 +130,8 @@ class CreateSOSViewModel extends GetxController with WidgetsBindingObserver {
       final response = await ApiCaller.getInstance().postBase<Object?>(
         'sos',
         <String, dynamic>{
-          'latitude': position?.latitude,
-          'longitude': position?.longitude,
+          'latitude': position.latitude,
+          'longitude': position.longitude,
           'note': null,
         },
       );
@@ -140,15 +146,16 @@ class CreateSOSViewModel extends GetxController with WidgetsBindingObserver {
 
       sentSosId.value =
           _extractSosId(response.data) ?? _extractSosId(response.raw);
+      await _notifySosSent();
+      state.value = CreateSOSState.sent;
       final sosId = sentSosId.value;
       if (sosId != null && sosId > 0) {
         await StudentSosTrackingService.instance.startTracking(
           sosId,
           syncImmediately: true,
+          userInitiated: true,
         );
       }
-      await _notifySosSent();
-      state.value = CreateSOSState.sent;
     } on ApiException catch (error) {
       resetToReady();
       Utils.showSnackbar(title: 'sos.title'.tr, content: error.message);
@@ -234,179 +241,15 @@ class CreateSOSViewModel extends GetxController with WidgetsBindingObserver {
     }
   }
 
-  Future<bool> _ensureLocationAccess({
-    bool showMessageOnFailure = true,
-  }) async {
-    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      if (showMessageOnFailure) {
-        await _showLocationDialog(
-          title: 'sos.title'.tr,
-          message: 'location.serviceDisabled'.tr,
-          actionLabel: 'location.openServiceSettings'.tr,
-          onConfirm: Geolocator.openLocationSettings,
+  Future<bool> _ensureLocationAccess({bool showMessageOnFailure = true}) async {
+    final allowed = await AppLocationRequirementService.instance
+        .checkLocationStatus(
+          use: LocationUse.general,
+          showDialog: showMessageOnFailure,
+          userInitiated: showMessageOnFailure,
         );
-      }
-      return false;
-    }
-
-    var permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-    }
-
-    if (permission == LocationPermission.denied) {
-      if (showMessageOnFailure) {
-        await _showLocationDialog(
-          title: 'sos.title'.tr,
-          message: 'location.permissionRequired'.tr,
-          actionLabel: 'location.openAppSettings'.tr,
-          onConfirm: Geolocator.openAppSettings,
-        );
-      }
-      return false;
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      if (showMessageOnFailure) {
-        await _showLocationDialog(
-          title: 'sos.title'.tr,
-          message: 'location.permissionRequired'.tr,
-          actionLabel: 'location.openAppSettings'.tr,
-          onConfirm: Geolocator.openAppSettings,
-        );
-      }
-      return false;
-    }
-
-    return true;
-  }
-
-  Future<void> _showLocationDialog({
-    required String title,
-    required String message,
-    required String actionLabel,
-    required Future<bool> Function() onConfirm,
-  }) async {
-    if (Get.isDialogOpen == true) {
-      return;
-    }
-
-    await Get.dialog<void>(
-      Dialog(
-        backgroundColor: Colors.transparent,
-        insetPadding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 420),
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x220F172A),
-                blurRadius: 28,
-                offset: Offset(0, 14),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFFF1F2),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: const Icon(
-                      Icons.location_on_rounded,
-                      color: Color(0xFFDC2626),
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: AppTextStyles.title.copyWith(
-                        color: const Color(0xFF111827),
-                        fontWeight: FontWeight.w700,
-                        height: 1.2,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-              Text(
-                message,
-                style: AppTextStyles.body.copyWith(
-                  color: const Color(0xFF4B5563),
-                  height: 1.45,
-                ),
-              ),
-              const SizedBox(height: 22),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFF6B7280),
-                        side: const BorderSide(color: Color(0xFFD9DFEA)),
-                        padding: const EdgeInsets.symmetric(vertical: 13),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                      ),
-                      onPressed: () => Get.back<void>(),
-                      child: Text(
-                        'common.cancel'.tr,
-                        style: AppTextStyles.button.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF29306F),
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(vertical: 13),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                      ),
-                      onPressed: () async {
-                        _shouldRetryLocationOnResume = true;
-                        Get.back<void>();
-                        await onConfirm();
-                      },
-                      child: Text(
-                        actionLabel,
-                        style: AppTextStyles.button.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-      barrierDismissible: true,
-    );
+    _shouldRetryLocationOnResume = !allowed && showMessageOnFailure;
+    return allowed;
   }
 
   int? _extractSosId(Object? data) {

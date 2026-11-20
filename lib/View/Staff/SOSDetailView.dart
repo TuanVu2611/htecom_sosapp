@@ -50,8 +50,10 @@ class SOSViewDetail extends GetWidget<SOSDetailViewModel> {
                       const SizedBox(height: 12),
                       _ChecklistSection(item: item, controller: controller),
                     ],
-                    const SizedBox(height: 12),
-                    _ReportCard(controller: controller),
+                    if (controller.canEdit) ...[
+                      const SizedBox(height: 12),
+                      _ReportCard(controller: controller),
+                    ],
                   ],
                 ),
               ),
@@ -468,7 +470,9 @@ class _TimelineCard extends StatelessWidget {
     final timeline = item.timeline.isEmpty
         ? _fallbackTimeline(item.status, item.createdAt)
         : item.timeline;
-    final actions = _statusActions(item);
+    final actions = _statusActions(
+      item,
+    ).where((step) => controller.canUpdateStatus(step.status)).toList();
     return _SectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -871,11 +875,12 @@ class _BottomActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isResolved = item.status == 'done';
-    final isProcessing = item.status == 'in_progress';
     return Obx(() {
       final isUpdating =
           controller.isUpdating.value || controller.isUpdatingChecklist.value;
+      final canConfirm = controller.canUpdateStatus('in_progress');
+      final canComplete = controller.canUpdateStatus('done');
+      if (!canConfirm && !canComplete) return const SizedBox.shrink();
       return Container(
         color: Colors.white,
         padding: EdgeInsets.fromLTRB(
@@ -886,44 +891,46 @@ class _BottomActions extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Expanded(
-              child: OutlinedButton(
-                onPressed: (isUpdating || isResolved || isProcessing)
-                    ? null
-                    : () => _confirmStatusUpdate(
-                        context: context,
-                        controller: controller,
-                        status: 'in_progress',
-                        label: _statusLabel('in_progress'),
-                      ),
-                style: _mapButtonStyle(),
-                child: const Text('Xác nhận xử lý'),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: FilledButton(
-                onPressed: isUpdating || isResolved
-                    ? null
-                    : () => _confirmStatusUpdate(
-                        context: context,
-                        controller: controller,
-                        status: 'done',
-                        label: _statusLabel('done'),
-                      ),
-                style: _primaryButtonStyle(),
-                child: isUpdating
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.2,
-                          color: Colors.white,
+            if (canConfirm)
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: isUpdating
+                      ? null
+                      : () => _confirmStatusUpdate(
+                          context: context,
+                          controller: controller,
+                          status: 'in_progress',
+                          label: _statusLabel('in_progress'),
                         ),
-                      )
-                    : const Text('Hoàn thành'),
+                  style: _mapButtonStyle(),
+                  child: const Text('Xác nhận xử lý'),
+                ),
               ),
-            ),
+            if (canConfirm && canComplete) const SizedBox(width: 10),
+            if (canComplete)
+              Expanded(
+                child: FilledButton(
+                  onPressed: isUpdating
+                      ? null
+                      : () => _confirmStatusUpdate(
+                          context: context,
+                          controller: controller,
+                          status: 'done',
+                          label: _statusLabel('done'),
+                        ),
+                  style: _primaryButtonStyle(),
+                  child: isUpdating
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text('Hoàn thành'),
+                ),
+              ),
           ],
         ),
       );
@@ -1011,8 +1018,7 @@ class _ChecklistSectionState extends State<_ChecklistSection> {
     return items;
   }
 
-  bool get _canEdit =>
-      widget.item.status != 'done' && widget.item.status != 'rejected';
+  bool get _canEdit => widget.controller.canEdit;
 
   bool get _hasChanges {
     final initial = _initialSelectedItems();
@@ -1023,6 +1029,7 @@ class _ChecklistSectionState extends State<_ChecklistSection> {
   }
 
   Future<void> _submitChecklist() async {
+    if (!_canEdit) return;
     final payload = _sortedChecklist()
         .where((entry) => _selectedItems.contains(entry.name.trim()))
         .map(
@@ -1640,6 +1647,7 @@ Future<void> _confirmCancelledStatusUpdate({
   required SOSDetailViewModel controller,
   required String status,
 }) async {
+  if (!controller.canUpdateStatus(status)) return;
   final reasonController = TextEditingController(
     text: controller.noteController.text,
   );

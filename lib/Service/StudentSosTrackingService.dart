@@ -9,8 +9,8 @@ import 'package:flutter/widgets.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:hcmu_sos/Entity/AuthUserEntity.dart';
-import 'package:hcmu_sos/Entity/SosTrackingEntity.dart';
 import 'package:hcmu_sos/Repository/SosTrackingRepository.dart';
+import 'package:hcmu_sos/Service/AppLocationRequirementService.dart';
 
 class StudentSosTrackingService with WidgetsBindingObserver {
   StudentSosTrackingService._({SosTrackingRepository? repository})
@@ -49,8 +49,10 @@ class StudentSosTrackingService with WidgetsBindingObserver {
   }
 
   Future<void> resumeTrackingIfNeeded() async {
+    final generation = _generation;
     try {
       final status = await _repository.getCurrentSosStatus();
+      if (generation != _generation) return;
       if (status == null || !status.canTrack) {
         stop();
         return;
@@ -70,6 +72,7 @@ class StudentSosTrackingService with WidgetsBindingObserver {
   Future<void> startTracking(
     int sosId, {
     bool syncImmediately = false,
+    bool userInitiated = false,
   }) async {
     if (sosId <= 0) {
       return;
@@ -77,19 +80,35 @@ class StudentSosTrackingService with WidgetsBindingObserver {
 
     _attachObserverIfNeeded();
 
-    final shouldRecreate = _activeSosId != sosId || _positionSubscription == null;
+    final shouldRecreate =
+        _activeSosId != sosId || _positionSubscription == null;
     _activeSosId = sosId;
 
-    if (shouldRecreate) {
-      await _restartTrackingStream();
-    }
+    try {
+      if (shouldRecreate) {
+        await _restartTrackingStream(userInitiated: userInitiated);
+      }
 
-    if (syncImmediately) {
-      unawaited(_sendLatestPosition(force: true));
+      if (syncImmediately) {
+        unawaited(_sendLatestPosition(force: true));
+      }
+    } catch (error, stackTrace) {
+      // A tracking/permission failure must not turn a successfully created SOS
+      // into a creation failure or cause the user to submit it again.
+      developer.log(
+        'Could not start SOS tracking.',
+        name: 'StudentSosTrackingService',
+        error: error,
+        stackTrace: stackTrace,
+      );
     }
   }
 
   void stop() {
+    if (_observerAttached) {
+      WidgetsBinding.instance.removeObserver(this);
+      _observerAttached = false;
+    }
     _positionSubscription?.cancel();
     _heartbeatTimer?.cancel();
     _positionSubscription = null;
@@ -102,42 +121,45 @@ class StudentSosTrackingService with WidgetsBindingObserver {
     _generation++;
   }
 
-  Future<void> _restartTrackingStream() async {
+  Future<void> _restartTrackingStream({required bool userInitiated}) async {
+    final generation = ++_generation;
     _positionSubscription?.cancel();
     _heartbeatTimer?.cancel();
+    _positionSubscription = null;
+    _heartbeatTimer = null;
     _latestPosition = null;
     _lastSentPosition = null;
     _lastSentAt = null;
 
-    final permissionGranted = await _ensureLocationPermission();
-    if (!permissionGranted) {
+    final permissionGranted = await _ensureLocationPermission(
+      userInitiated: userInitiated,
+    );
+    if (!permissionGranted || generation != _generation) {
       return;
     }
 
-    final generation = ++_generation;
     final settings = _buildLocationSettings();
 
-    _positionSubscription = Geolocator.getPositionStream(
-      locationSettings: settings,
-    ).listen(
-      (position) {
-        if (generation != _generation) {
-          return;
-        }
-        _latestPosition = position;
-        if (_shouldUpload(position)) {
-          unawaited(_sendLatestPosition());
-        }
-      },
-      onError: (Object error, StackTrace stackTrace) {
-        developer.log(
-          'SOS location stream failed.',
-          name: 'StudentSosTrackingService',
-          error: error,
-          stackTrace: stackTrace,
+    _positionSubscription =
+        Geolocator.getPositionStream(locationSettings: settings).listen(
+          (position) {
+            if (generation != _generation) {
+              return;
+            }
+            _latestPosition = position;
+            if (_shouldUpload(position)) {
+              unawaited(_sendLatestPosition());
+            }
+          },
+          onError: (Object error, StackTrace stackTrace) {
+            developer.log(
+              'SOS location stream failed.',
+              name: 'StudentSosTrackingService',
+              error: error,
+              stackTrace: stackTrace,
+            );
+          },
         );
-      },
-    );
 
     _heartbeatTimer = Timer.periodic(_heartbeatInterval, (_) {
       if (generation != _generation) {
@@ -150,7 +172,12 @@ class StudentSosTrackingService with WidgetsBindingObserver {
   Future<void> _sendLatestPosition({bool force = false}) async {
     final sosId = _activeSosId;
     final position = _latestPosition;
-    if (sosId == null || position == null || _isSending) {
+    if (sosId == null ||
+        position == null ||
+        _isSending ||
+        !AppLocationRequirementService.instance.hasConsent(
+          use: LocationUse.sosTracking,
+        )) {
       return;
     }
 
@@ -221,19 +248,11 @@ class StudentSosTrackingService with WidgetsBindingObserver {
     return distance >= _distanceFilterInMeters;
   }
 
-  Future<bool> _ensureLocationPermission() async {
-    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      return false;
-    }
-
-    var permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-    }
-
-    return permission != LocationPermission.denied &&
-        permission != LocationPermission.deniedForever;
+  Future<bool> _ensureLocationPermission({required bool userInitiated}) async {
+    return AppLocationRequirementService.instance.checkLocationStatus(
+      use: LocationUse.sosTracking,
+      userInitiated: userInitiated,
+    );
   }
 
   LocationSettings _buildLocationSettings() {

@@ -9,135 +9,172 @@ import 'package:hcmu_sos/Entity/AuthUserEntity.dart';
 import 'package:hcmu_sos/Theme/AppTypography.dart';
 import 'package:hcmu_sos/Utils/StorageManager.dart';
 
+enum LocationUse { general, sosTracking }
+
 class AppLocationRequirementService with WidgetsBindingObserver {
   AppLocationRequirementService._();
 
   static final AppLocationRequirementService instance =
       AppLocationRequirementService._();
 
-  bool _observerAttached = false;
-  bool _isSupportedRole = false;
-  String? _consentKey;
+  AuthUserEntity? _user;
   int _generation = 0;
-  Future<bool>? _consentDecision;
-  Future<bool>? _pendingCheck;
+  bool _autoPromptDeclined = false;
+  bool _permissionDeclined = false;
+  Future<void>? _queue;
+  final Map<LocationUse, Future<bool>> _pending = {};
+
+  int get sessionRevision => _generation;
+
+  bool get _foreground =>
+      WidgetsBinding.instance.lifecycleState == null ||
+      WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;
 
   void startForUser(AuthUserEntity user) {
+    if (_user?.id == user.id && _user?.role == user.role) return;
     stop();
-    _consentKey = 'location_update_consent_v1_${user.id}';
-    _isSupportedRole =
-        user.role == AuthUserRole.student || user.role == AuthUserRole.staff;
-    if (!_isSupportedRole) {
-      stop();
-      return;
-    }
-
-    _attachObserverIfNeeded();
-    unawaited(checkLocationStatus(showDialog: true));
+    _user = user;
+    WidgetsBinding.instance.addObserver(this);
+    unawaited(checkLocationStatus());
   }
 
   void stop() {
-    _isSupportedRole = false;
+    WidgetsBinding.instance.removeObserver(this);
+    _user = null;
     _generation++;
-    _consentKey = null;
-    _consentDecision = null;
-    _pendingCheck = null;
-    if (_observerAttached) {
-      WidgetsBinding.instance.removeObserver(this);
-      _observerAttached = false;
+    if (_pending.isEmpty) _queue = null;
+    _pending.clear();
+    _autoPromptDeclined = false;
+    _permissionDeclined = false;
+  }
+
+  String? _consentKey(LocationUse use) {
+    final user = _user;
+    return user == null
+        ? null
+        : 'location_consent_v2_${user.id}_${user.role.name}_${use.name}';
+  }
+
+  bool hasConsent({LocationUse use = LocationUse.general}) {
+    final key = _consentKey(use);
+    return key != null && StorageManager.getBool(key) == true;
+  }
+
+  String _message(LocationUse use) {
+    if (use == LocationUse.sosTracking) {
+      return 'location.sosDisclosureMessage'.tr;
     }
+    return (_user?.role == AuthUserRole.staff
+            ? 'location.staffDisclosureMessage'
+            : 'location.disclosureMessage')
+        .tr;
   }
 
-  Future<bool> checkLocationStatus({bool showDialog = true}) {
-    return _pendingCheck ??= _checkLocationStatus(showDialog: showDialog);
-  }
-
-  Future<bool> _checkLocationStatus({required bool showDialog}) async {
+  // Serialize disclosures and OS permission prompts across all location users.
+  // Calls for the same purpose share the in-flight decision.
+  Future<bool> checkLocationStatus({
+    bool showDialog = true,
+    bool userInitiated = false,
+    LocationUse use = LocationUse.general,
+  }) {
+    final existing = _pending[use];
+    if (existing != null) return existing;
     final generation = _generation;
-    try {
-      return await _checkLocationAccess(showDialog, generation);
-    } finally {
-      if (generation == _generation) _pendingCheck = null;
-    }
+    final previous = _queue;
+    final result = () async {
+      if (previous != null) await previous;
+      try {
+        if (_user == null || generation != _generation) return false;
+        return await _checkAccess(use, generation, showDialog, userInitiated);
+      } finally {
+        if (generation == _generation) _pending.remove(use);
+      }
+    }();
+    _pending[use] = result;
+    _queue = result.then<void>(
+      (_) {},
+      onError: (Object error, StackTrace stackTrace) {},
+    );
+    return result;
   }
 
-  Future<bool> _checkLocationAccess(bool showDialog, int generation) async {
-    if (!_isSupportedRole) return false;
-    final accepted = await (_consentDecision ??= _requestConsent(generation));
-    if (!accepted || generation != _generation || !_isSupportedRole) {
-      return false;
+  Future<bool> _checkAccess(
+    LocationUse use,
+    int generation,
+    bool showDialog,
+    bool userInitiated,
+  ) async {
+    if (userInitiated) {
+      _autoPromptDeclined = false;
+      _permissionDeclined = false;
     }
-
-    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (generation != _generation) return false;
-    if (!serviceEnabled) {
-      if (showDialog) {
-        await _showEnableLocationDialog();
-      }
-      return false;
-    }
-
     var permission = await Geolocator.checkPermission();
     if (generation != _generation) return false;
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-    }
-    if (generation != _generation) return false;
-
-    if (permission == LocationPermission.denied) {
-      if (showDialog) {
-        await _showPermissionDialog();
+    final needsPermission =
+        permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever;
+    // Even after consent was saved, a new OS permission request must be
+    // immediately preceded by its explanation (e.g. permission was revoked).
+    if (!hasConsent(use: use) || needsPermission) {
+      if (!showDialog ||
+          !_foreground ||
+          _autoPromptDeclined ||
+          (_permissionDeclined && needsPermission)) {
+        return false;
       }
-      return false;
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      if (showDialog) await _showPermissionDialog();
-      return false;
-    }
-
-    return permission == LocationPermission.whileInUse ||
-        permission == LocationPermission.always;
-  }
-
-  Future<bool> _requestConsent(int generation) async {
-    final key = _consentKey;
-    if (key == null) return false;
-    if (StorageManager.getBool(key) == true) return true;
-
-    // Login/session restoration navigates to the dashboard in this frame.
-    await WidgetsBinding.instance.endOfFrame;
-    if (generation != _generation || !_isSupportedRole) return false;
-    if (Get.isDialogOpen == true) return false;
-
-    final accepted = await _showLocationDialog(
-      title: 'location.disclosureTitle'.tr,
-      message: 'location.disclosureMessage'.tr,
-      actionLabel: 'location.disclosureAccept'.tr,
-      cancelLabel: 'location.disclosureLater'.tr,
-    );
-    if (generation != _generation || !accepted) return false;
-    return StorageManager.setBool(key, true);
-  }
-
-  Future<void> _showEnableLocationDialog() async {
-    await _showLocationDialog(
-      message: 'location.appRequireEnabled'.tr,
-      actionLabel: 'location.openServiceSettings'.tr,
-      onConfirm: () async {
-        await Geolocator.openLocationSettings();
-      },
-    );
-  }
-
-  Future<void> _showPermissionDialog() async {
-    await _showLocationDialog(
-      message: 'location.appPermissionRequired'.tr,
-      actionLabel: 'location.openAppSettings'.tr,
-      onConfirm: () async {
+      await WidgetsBinding.instance.endOfFrame;
+      if (generation != _generation ||
+          !_foreground ||
+          Get.isDialogOpen == true) {
+        return false;
+      }
+      final key = _consentKey(use)!;
+      final accepted = await _showLocationDialog(
+        title: 'location.disclosureTitle'.tr,
+        message: _message(use),
+        actionLabel: 'location.disclosureAccept'.tr,
+        cancelLabel: 'location.disclosureLater'.tr,
+      );
+      if (generation != _generation) return false;
+      if (!accepted) {
+        _autoPromptDeclined = true;
+        return false;
+      }
+      if (!await StorageManager.setBool(key, true)) return false;
+      if (generation != _generation || !_foreground) return false;
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (generation != _generation) return false;
+      } else if (permission == LocationPermission.deniedForever) {
+        // The disclosure is shown before taking the user to OS settings too.
         await Geolocator.openAppSettings();
-      },
-    );
+        if (generation == _generation) _permissionDeclined = true;
+        return false;
+      }
+      if (permission != LocationPermission.whileInUse &&
+          permission != LocationPermission.always) {
+        _permissionDeclined = true;
+        return false;
+      }
+    }
+    if (permission != LocationPermission.whileInUse &&
+        permission != LocationPermission.always) {
+      return false;
+    }
+    final enabled = await Geolocator.isLocationServiceEnabled();
+    if (generation != _generation) return false;
+    if (!enabled && showDialog && _foreground) {
+      await _showLocationDialog(
+        message: '${_message(use)}\n\n${'location.serviceDisabled'.tr}',
+        actionLabel: 'location.openServiceSettings'.tr,
+        onConfirm: () async {
+          if (generation == _generation) {
+            await Geolocator.openLocationSettings();
+          }
+        },
+      );
+    }
+    return enabled && generation == _generation && hasConsent(use: use);
   }
 
   Future<bool> _showLocationDialog({
@@ -268,21 +305,9 @@ class AppLocationRequirementService with WidgetsBindingObserver {
     return accepted == true;
   }
 
-  void _attachObserverIfNeeded() {
-    if (_observerAttached) {
-      return;
-    }
-
-    WidgetsBinding.instance.addObserver(this);
-    _observerAttached = true;
-  }
-
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (!_isSupportedRole || state != AppLifecycleState.resumed) {
-      return;
-    }
-
-    unawaited(checkLocationStatus(showDialog: true));
+    if (_user == null || state != AppLifecycleState.resumed) return;
+    unawaited(checkLocationStatus());
   }
 }
